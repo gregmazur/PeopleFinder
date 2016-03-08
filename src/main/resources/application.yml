@@ -1,0 +1,7 @@
+security:
+  oauth2:
+    client:
+      client_id: 5340900
+      redirect_uri: http://localhost:8080/
+      display: page
+      access_token: https://oauth.vk.com/authorize
