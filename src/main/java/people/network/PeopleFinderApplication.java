@@ -6,7 +6,6 @@ import org.springframework.boot.autoconfigure.security.oauth2.client.EnableOAuth
 
 
 @SpringBootApplication
-@EnableOAuth2Sso
 public class PeopleFinderApplication {
 
 	public static void main(String[] args) {
