@@ -10,6 +10,7 @@ import com.vaadin.spring.annotation.UIScope;
 @SpringComponent
 @UIScope
 public class Details {
+
     private String name;
     private int age;
     private int city;

@@ -39,6 +39,7 @@ import java.net.URL;
 @PreserveOnRefresh
 public class MainPage extends UI {
 
+
     @WebServlet(value = "/*", asyncSupported = true)
     @VaadinServletConfiguration(productionMode = false, ui = MainPage.class)
     public static class Servlet extends VaadinServlet {

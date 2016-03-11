@@ -6,6 +6,7 @@ import org.scribe.builder.api.Api;
  * @author Mazur G <a href="mailto:mazur@ibis.ua">mazur@ibis.ua</a>
  **/
 public class ApiInfo {
+
     public final String name;
     public final Class<? extends Api> scribeApi;
     public final String apiKey;

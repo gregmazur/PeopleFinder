@@ -30,6 +30,7 @@ import org.scribe.oauth.OAuthService;
  * @author Mazur G <a href="mailto:mazur@ibis.ua">mazur@ibis.ua</a>
  */
 public class GetTestComponent extends Panel {
+
     private final VerticalLayout layout = new VerticalLayout();
     private final Token accessToken;
     private final ApiInfo service;
