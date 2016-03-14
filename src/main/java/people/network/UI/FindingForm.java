@@ -1,9 +1,11 @@
 package people.network.UI;
 
-import com.vaadin.ui.Label;
-import com.vaadin.ui.VerticalLayout;
-import org.springframework.web.client.RestTemplate;
-import people.network.entity.Country;
+import com.vaadin.data.util.BeanItemContainer;
+import com.vaadin.ui.*;
+import people.network.entity.ResponseSearchCriteriaObj;
+import people.network.rest.JsonService;
+
+import java.util.Collection;
 
 /**
  *
@@ -12,24 +14,25 @@ import people.network.entity.Country;
  **/
 public class FindingForm extends VerticalLayout {
 
-    private String accessToken;
+    private JsonService service;
 
-    public FindingForm(String accessToken) {
+    public FindingForm(JsonService service) {
         super();
-        this.accessToken = accessToken;
-        addComponent(new Label(accessToken));
-        Country country = new Country();
-        country.getText();
+        this.service = service;
+
+       init();
     }
 
+    private void init(){
+        HorizontalLayout layout = new HorizontalLayout();
+        addComponent(layout);
 
-
-    final String uri = "http://localhost:8080/springrestexample/employees.xml";
-
-    RestTemplate restTemplate = new RestTemplate();
-    String result = restTemplate.getForObject(uri, String.class);
-
-
-
+        TextField name = new TextField();
+        layout.addComponent(name);
+//        Collection<ResponseSearchCriteriaObj> items = service.getCriteriaList("database.getCountries", "u");
+//        BeanItemContainer<ResponseSearchCriteriaObj> objects = new BeanItemContainer<>(ResponseSearchCriteriaObj.class, items);
+        ComboBox country = new ComboBox("country");
+        addComponent(country);
+    }
 
 }

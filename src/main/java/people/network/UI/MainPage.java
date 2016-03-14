@@ -2,10 +2,11 @@ package people.network.UI;
 
 import com.vaadin.annotations.PreserveOnRefresh;
 import com.vaadin.annotations.Theme;
-import com.vaadin.server.ExternalResource;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.spring.annotation.SpringUI;
 import com.vaadin.ui.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import people.network.rest.JsonService;
 
 /**
  * Created by greg on 08.03.16.
@@ -14,11 +15,19 @@ import com.vaadin.ui.*;
 @SpringUI
 @PreserveOnRefresh
 public class MainPage extends UI {
+
+    @Autowired
+    private JsonService service;
+
     @Override
     protected void init(VaadinRequest request) {
         String token = getAccessToken();
+        service.setAccessToken(token);
         if (null == token) openSignInWindow();
-        else setContent(new FindingForm(token));
+        else{
+            setContent(new FindingForm(service));
+            service.show();
+        }
 
 
     }
