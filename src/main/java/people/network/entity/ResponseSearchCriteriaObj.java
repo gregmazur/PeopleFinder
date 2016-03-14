@@ -12,6 +12,6 @@ import lombok.Data;
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ResponseSearchCriteriaObj {
-    private String name;
+    private String title;
     private int id;
 }

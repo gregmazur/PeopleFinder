@@ -8,6 +8,8 @@ import com.vaadin.ui.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import people.network.rest.JsonService;
 
+import java.io.IOException;
+
 /**
  * Created by greg on 08.03.16.
  */
@@ -24,11 +26,7 @@ public class MainPage extends UI {
         String token = getAccessToken();
         service.setAccessToken(token);
         if (null == token) openSignInWindow();
-        else{
-            setContent(new FindingForm(service));
-            service.show();
-        }
-
+        else setContent(new FindingForm(service));
 
     }
 
@@ -49,7 +47,7 @@ public class MainPage extends UI {
         subContent.addComponent(new Label("Please login first"));
         String link = "https://oauth.vk.com/authorize?client_id=5343222&display=page&redirect_uri=http://localhost:8080&scope=friends&response_type=token&v=5.8";
         subContent.addComponent(new Button("LOGIN", event -> {
-            getPage().open(link,"login");
+            getPage().open(link, "login");
         }));
         // Center it in the browser window
         subWindow.center();
