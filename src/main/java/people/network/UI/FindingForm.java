@@ -1,14 +1,10 @@
 package people.network.UI;
 
 import com.vaadin.data.util.BeanItemContainer;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.TextField;
-import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.*;
 import people.network.entity.ResponseSearchCriteriaObj;
 import people.network.rest.JsonService;
 
-import java.io.IOException;
 import java.util.Collection;
 
 /**
@@ -26,14 +22,14 @@ public class FindingForm extends VerticalLayout {
     }
 
     private void init() {
-        HorizontalLayout layout = new HorizontalLayout();
-        addComponent(layout);
-
         TextField name = new TextField();
-        layout.addComponent(name);
+        name.setWidth(80, Unit.PERCENTAGE);
+        addComponent(name);
         Collection<ResponseSearchCriteriaObj> items = service.getCriteriaList("database.getCountries", "u");
         BeanItemContainer<ResponseSearchCriteriaObj> objects = new BeanItemContainer<>(ResponseSearchCriteriaObj.class, items);
         ComboBox country = new ComboBox("country",objects);
+        country.setItemCaptionPropertyId(AbstractSelect.ItemCaptionMode.ITEM);
+        country.setWidth(80,Unit.PERCENTAGE);
         addComponent(country);
     }
 
