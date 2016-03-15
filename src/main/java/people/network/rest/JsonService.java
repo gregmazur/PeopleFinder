@@ -3,6 +3,9 @@ package people.network.rest;
 
 import com.vaadin.spring.annotation.SpringComponent;
 import lombok.Data;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -10,6 +13,8 @@ import people.network.entity.Response;
 import people.network.entity.ResponseObject;
 import people.network.entity.ResponseSearchCriteriaObj;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -39,6 +44,9 @@ public class JsonService {
         Map<String, String> values = new HashMap<>(2);
         values.put("method", method);
         values.put("q", q);
+        //for IBIS
+//        System.setProperty("https.proxyHost","proxy.ibis");
+//        System.setProperty("https.proxyPort","3128");
         // marshaling the response from JSON to an array
         ResponseObject responseObject= restTemplate.getForObject(uri, ResponseObject.class, values);
         ResponseSearchCriteriaObj[] objects = responseObject.getResponse().getItems();
