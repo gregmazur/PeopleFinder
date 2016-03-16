@@ -11,6 +11,7 @@
     <name>PeopleFinder</name>
     <description>Finding people by pic app</description>
 
+
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
@@ -26,6 +27,13 @@
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.16.0</version>
+            <scope>provided</scope>
+        </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -80,7 +88,9 @@
             <scope>compile</scope>
         </dependency>
 
+
     </dependencies>
+
 
     <dependencyManagement>
         <dependencies>
@@ -113,5 +123,7 @@
             <url>http://snapshots.openimaj.org</url>
         </repository>
     </repositories>
+
+
 
 </project>
