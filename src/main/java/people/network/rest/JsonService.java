@@ -5,16 +5,14 @@ import com.vaadin.spring.annotation.SpringComponent;
 import lombok.Data;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import people.network.entity.ResponseObject;
 import people.network.entity.ResponseSearchCriteriaObj;
 
-import java.net.URI;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author Mazur G <a href="mailto:mazur@ibis.ua">mazur@ibis.ua</a>
@@ -30,39 +28,32 @@ public class JsonService {
         restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
     }
 
-    public JsonService(String accessToken) {
-        this();
-        this.accessToken = accessToken;
-    }
+    /**
+     *
+     * @param method
+     * @param params 3 obligatory parameters will be added
+     * @return
+     */
+    public Collection<ResponseSearchCriteriaObj> getCriteriaList(String method, MultiValueMap<String, String> params) {
+        if (null == params) params = new LinkedMultiValueMap<>(3);
+        params.add("v", "5.8");
+        params.add("access_token", accessToken);
+        params.add("count", "1000");
+        UriComponentsBuilder uriBuilder = UriComponentsBuilder.newInstance()
+                .scheme("https").host("api.vk.com").path("/method/{method}").queryParams(params);
+        String url = uriBuilder.buildAndExpand(method).encode().toUriString();
 
-    public Collection<ResponseSearchCriteriaObj> getCriteriaList(String method, String q) {
-        String uri = "https://api.vk.com/method/{method}?q={q}&v=5.8&access_token=" + accessToken;
-        UriComponentsBuilder builder = UriComponentsBuilder.newInstance();
-        builder.
-        Map<String, String> values = new HashMap<>(2);
-        values.put("method", method);
-        values.put("q", q);
         //for IBIS
-        System.setProperty("https.proxyHost","proxy.ibis");
-        System.setProperty("https.proxyPort","3128");
+        System.setProperty("https.proxyHost", "proxy.ibis");
+        System.setProperty("https.proxyPort", "3128");
         // marshaling the response from JSON to an array
-        ResponseObject responseObject= restTemplate.getForObject(uri, ResponseObject.class, values);
+        ResponseObject responseObject = restTemplate.getForObject(url, ResponseObject.class);
         ResponseSearchCriteriaObj[] objects = responseObject.getResponse().getItems();
         return Arrays.asList(objects);
-        UriComponents uriComponents =
-                UriComponentsBuilder.newInstance()
-                        .scheme("http")
-                        .host("www.leveluplunch.com")
-                        .path("/{lanuage}/{type}/")
-                        .queryParam("test", "a", "b")
-                        .build()
-                        .expand("java", "examples")
-                        .encode();
 
-        assertEquals("http://www.leveluplunch.com/java/examples/?test=a&test=b",
-                uriComponents.toUriString());
+
     }
-    }
-
-
 }
+
+
+
