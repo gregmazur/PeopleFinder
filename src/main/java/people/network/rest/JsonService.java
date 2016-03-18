@@ -10,7 +10,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import people.network.entity.ResponseObject;
-import people.network.entity.ResponseSearchCriteriaObj;
+import people.network.entity.RespSrchCrtriaObj;
 
 import java.util.Arrays;
 import java.util.List;
@@ -36,7 +36,7 @@ public class JsonService {
      * @param from   number of from which you need to get the list
      * @return
      */
-    public List<ResponseSearchCriteriaObj> getCriteriaList(String method, MultiValueMap<String, String> params,
+    public List<RespSrchCrtriaObj> getCriteriaList(String method, MultiValueMap<String, String> params,
                                                            int count, int from) {
         if (null == params) params = new LinkedMultiValueMap<>(3);
         params.add("v", "5.8");
@@ -50,7 +50,7 @@ public class JsonService {
 
         // marshaling the response from JSON to an array
         ResponseObject responseObject = restTemplate.getForObject(url, ResponseObject.class);
-        ResponseSearchCriteriaObj[] objects = responseObject.getResponse().getItems();
+        RespSrchCrtriaObj[] objects = responseObject.getResponse().getItems();
         return Arrays.asList(objects);
 
 

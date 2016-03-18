@@ -8,5 +8,5 @@ import lombok.Data;
 @Data
 public class Response {
     private int count;
-    private ResponseSearchCriteriaObj[] items;
+    private RespSrchCrtriaObj[] items;
 }
