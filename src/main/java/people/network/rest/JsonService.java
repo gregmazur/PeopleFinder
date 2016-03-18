@@ -12,6 +12,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import people.network.entity.ResponseObject;
 import people.network.entity.RespSrchCrtriaObj;
 
+import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
 
