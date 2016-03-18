@@ -2,11 +2,14 @@ package people.network.entity;
 
 import lombok.Data;
 
+import java.io.Serializable;
+
 /**
  * Created by greg on 14.03.16.
  */
 @Data
-public class Response {
+public class Response implements Serializable{
+    static final long serialVersionUID = -7627629688361524110L;
     private int count;
-    private ResponseSearchCriteriaObj[] items;
+    private RespSrchCrtriaObj[] items;
 }

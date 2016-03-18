@@ -1,9 +1,10 @@
 package people.network.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.io.Serializable;
 
 /**
  *
@@ -14,7 +15,8 @@ import lombok.Setter;
 @Getter
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ResponseSearchCriteriaObj {
+public class RespSrchCrtriaObj implements Serializable {
+
     private String title;
     private int id;
 

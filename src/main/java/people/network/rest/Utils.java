@@ -11,6 +11,7 @@ public class Utils {
     public static final String GET_CITIES_METHOD = "database.getCities";
     public static final String GET_COUNTRIES_METHOD = "database.getCountries";
     public static final String GET_UNIVESITIES_METHOD = "database.getUniversities";
+    public static final String GET_SCHOOLS_METHOD = "database.getSchools";
     public static final String GET_FACULTIES_METHOD = "database.getFaculties";
 
     public static void bindItemsToComboBox(ComboBox comboBox, Collection items){
