@@ -11,17 +11,17 @@ import java.io.IOException;
 @SpringBootApplication
 public class PeopleFinderApplication {
 
-	public static void main(String[] args) throws IOException {
-		//testing
-		ImageProcessing proc = ImageProcessing.createInstance();
-		proc.doImageProcessingTest();
-	}
+//	public static void main(String[] args) throws IOException {
+//		//testing
+//		ImageProcessing proc = ImageProcessing.createInstance();
+//		proc.doImageProcessingTest();
+//	}
 
-	/*public static void main(String[] args) {
+	public static void main(String[] args) {
 		SpringApplication.run(PeopleFinderApplication.class, args);
 		//for IBIS
-		System.setProperty("https.proxyHost", "proxy.ibis");
-		System.setProperty("https.proxyPort", "3128");
-	}*/
+//		System.setProperty("https.proxyHost", "proxy.ibis");
+//		System.setProperty("https.proxyPort", "3128");
+	}
 
 }

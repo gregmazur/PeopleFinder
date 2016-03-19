@@ -18,7 +18,7 @@ import java.io.Serializable;
 public class RespSrchCrtriaObj implements Serializable {
 
     private String title;
-    private int id;
+    private long id;
 
     @Override
     public String toString() {
