@@ -7,6 +7,7 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import people.network.entity.ResponseObject;
@@ -14,6 +15,7 @@ import people.network.entity.RespSrchCrtriaObj;
 
 import java.net.URL;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -49,8 +51,14 @@ public class JsonService {
         String url = uriBuilder.buildAndExpand(method).toUriString();
         System.out.println(url);
 
-        // marshaling the response from JSON to an array
-        ResponseObject responseObject = restTemplate.getForObject(url, ResponseObject.class);
+        // marshaling the response from JSON to an
+        ResponseObject responseObject = null;
+        try {
+            responseObject = restTemplate.getForObject(url, ResponseObject.class);
+        } catch (ResourceAccessException e){
+            Utils.showError();
+            return Collections.emptyList();
+        }
         RespSrchCrtriaObj[] objects = responseObject.getResponse().getItems();
         return Arrays.asList(objects);
 

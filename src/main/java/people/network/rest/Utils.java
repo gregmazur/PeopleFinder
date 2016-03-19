@@ -1,6 +1,8 @@
 package people.network.rest;
 
+import com.vaadin.server.Page;
 import com.vaadin.ui.ComboBox;
+import com.vaadin.ui.Notification;
 
 import java.util.Collection;
 
@@ -13,6 +15,7 @@ public class Utils {
     public static final String GET_UNIVERSITIES_METHOD = "database.getUniversities";
     public static final String GET_SCHOOLS_METHOD = "database.getSchools";
     public static final String GET_FACULTIES_METHOD = "database.getFaculties";
+    public static final String GET_REGIONS_METHOD = "database.getRegions";
     public static final String GET_GROUPS_METHOD = "groups.search";
 
     public static void bindItemsToComboBox(ComboBox comboBox, Collection items){
@@ -20,5 +23,12 @@ public class Utils {
             comboBox.addItem(o);
             comboBox.setItemCaption(o,o.toString());
         }
+    }
+
+    public static void showError(){
+        new Notification("Error",
+                "<br/>Couldn`t connect to VK",
+                Notification.Type.WARNING_MESSAGE, true)
+                .show(Page.getCurrent());
     }
 }

@@ -1,6 +1,9 @@
 package people.network.UI;
 
 import com.vaadin.data.Property;
+import com.vaadin.navigator.Navigator;
+import com.vaadin.navigator.View;
+import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.*;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -17,20 +20,23 @@ import java.util.LinkedList;
 /**
  * @author Mazur G <a href="mailto:mazur@ibis.ua">mazur@ibis.ua</a>
  */
-public class FindingForm extends VerticalLayout implements Serializable {
+public class FindingForm extends VerticalLayout implements Serializable, View {
 
     private static final long serialVersionUID = -6575751250735498511L;
 
     private JsonService service;
-    private MultiValueMap<String, String> userSearchParams = new LinkedMultiValueMap<>(35);
+    private MultiValueMap<String, String> userSearchParams;
     ComboBox homeCountry = new ComboBox("Home country"), homeCity = new ComboBox("Home city"),
+            homeRegion = new ComboBox("Home region"),
 
     currentCountry = new ComboBox("Current country"), currentCity = new ComboBox("Current city"),
+            currentRegion = new ComboBox("Current region"),
 
-    universityCountry = new ComboBox("University country"), universityCity = new ComboBox("University city");
+    universityCountry = new ComboBox("University country"), universityCity = new ComboBox("University city"),
+            universityRegion = new ComboBox("University region");
     private TextField name = new TextField("name");
-    private Button submit;
     private TextArea result;
+    private Navigator navigator;
 
     private enum InfoRole {
         HOME, UNIVERSITY, CURRENT
@@ -45,6 +51,10 @@ public class FindingForm extends VerticalLayout implements Serializable {
         }
     }
 
+    @Override
+    public void enter(ViewChangeListener.ViewChangeEvent event) {
+    }
+
     private enum Status {
         NOTMARRIED("1"), DATING("2"), ENGAGED("3"), MARRIED("4"), INLOVE("7"), COMPLICATED("5"), SEARCHING("6");
         private final String value;
@@ -55,33 +65,61 @@ public class FindingForm extends VerticalLayout implements Serializable {
     }
 
 
-    public FindingForm(JsonService service) {
+    public FindingForm(JsonService service, MultiValueMap map, Navigator navigator) {
         super();
         this.service = service;
+        this.userSearchParams = map;
+        this.navigator = navigator;
         init();
     }
 
     private void init() {
+        setResponsive(true);
         Collection<RespSrchCrtriaObj> countries = getCountriesList();
-
-
+        name.setWidth(50, Unit.PERCENTAGE);
         addComponent(name);
+        setComponentAlignment(name, Alignment.MIDDLE_CENTER);
 
-        HorizontalLayout layout = new HorizontalLayout();
-        layout.addComponent(currentInfo(countries));
-        layout.addComponent(universityInfo(countries));
-        layout.addComponent(homeInfo(countries));
-        addComponent(layout);
+        HorizontalLayout placesInfo = new HorizontalLayout();
+        placesInfo.addComponent(currentInfo(countries));
+        placesInfo.addComponent(universityInfo(countries));
+        placesInfo.addComponent(homeInfo(countries));
+        addComponent(placesInfo);
+        setComponentAlignment(placesInfo, Alignment.MIDDLE_CENTER);
 
-        addComponent(commonInfo());
+        ComboBox sex = getSex();
+        addComponents(sex);
+        sex.setWidth(50, Unit.PERCENTAGE);
+        setComponentAlignment(sex, Alignment.MIDDLE_CENTER);
 
-        submit = new Button("Submit", event -> {
-            result.setValue(name.getValue()
-                    + userSearchParams.get("school_country"));
+        ComboBox status = getStatus();
+        addComponents(status);
+        status.setWidth(50, Unit.PERCENTAGE);
+        setComponentAlignment(status, Alignment.MIDDLE_CENTER);
+
+        HorizontalLayout ageLayout = getAgeLayout();
+        addComponents(ageLayout);
+        setComponentAlignment(ageLayout, Alignment.MIDDLE_CENTER);
+
+        HorizontalLayout birthDate = getBirthDate();
+        addComponents(birthDate);
+        setComponentAlignment(birthDate, Alignment.MIDDLE_CENTER);
+
+        ComboBox group = getGroup();
+        addComponents(group);
+        group.setWidth(50, Unit.PERCENTAGE);
+        setComponentAlignment(group, Alignment.MIDDLE_CENTER);
+
+        Button submit = new Button("Submit", event -> {
+            String name = this.name.getValue();
+            if (null != name) putParam("q", name);
+            navigator.navigateTo(MainPage.PEOPLE_FOUND);
         });
         addComponent(submit);
+        setComponentAlignment(submit, Alignment.MIDDLE_CENTER);
         result = new TextArea();
         addComponent(result);
+        setComponentAlignment(result, Alignment.MIDDLE_CENTER);
     }
 
     private VerticalLayout homeInfo(Collection<RespSrchCrtriaObj> countries) {
@@ -173,8 +211,7 @@ public class FindingForm extends VerticalLayout implements Serializable {
         return layout;
     }
 
-    private VerticalLayout commonInfo() {
-        VerticalLayout layout = new VerticalLayout();
+    private ComboBox getSex(){
         ComboBox sex = new ComboBox("Sex");
         sex.addItem(Sex.FEMALE);
         sex.addItem(Sex.MALE);
@@ -182,7 +219,10 @@ public class FindingForm extends VerticalLayout implements Serializable {
             Sex sex1 = (Sex) sex.getValue();
             if (null != sex1) putParam("sex", sex1.value);
         });
-        layout.addComponent(sex);
+        return sex;
+    }
+
+    private ComboBox getStatus(){
         ComboBox status = new ComboBox("Status");
         status.addItem(Status.SEARCHING);
         status.addItem(Status.COMPLICATED);
@@ -195,84 +235,63 @@ public class FindingForm extends VerticalLayout implements Serializable {
             Status status1 = (Status) status.getValue();
             if (null != status1) putParam("status", status1.value);
         });
-        layout.addComponent(status);
+        return status;
+    }
 
-        HorizontalLayout ageLayout = new HorizontalLayout();
-        TextField ageFrom = new TextField("age from");
-        ageFrom.setImmediate(true);
-        TextField ageTo = new TextField("age to");
-        ageTo.setImmediate(true);
-        ageFrom.addValueChangeListener(event -> {
-            String text = ageFrom.getValue();
-            if (null == text) return;//TODO
-            try {
-                int ageFromValue = (int) ageFrom.getConvertedValue();
-                if (ageFromValue > (int) ageTo.getConvertedValue()) ageFrom.clear();
-                else putParam("age_from", ageFromValue);
-            } catch (Exception e) {
-                ageFrom.clear();
-            }
-        });
-        ageLayout.addComponent(ageFrom);
-        ageTo.addValueChangeListener(event -> {
-            String text = ageTo.getValue();
-            if (null == text) return;
-            try {
-                int ageToValue = (int) ageTo.getConvertedValue();
-                if (ageToValue < (int) ageFrom.getConvertedValue()) ageTo.clear();
-                else putParam("age_to", ageToValue);
-            } catch (Exception e) {
-                ageTo.clear();
-            }
-        });
-        ageLayout.addComponent(ageTo);
-        layout.addComponent(ageLayout);
-
-        layout.addComponent(addDate());
-
-        ComboBox group = new ComboBox("Type name of group and press Enter");//TODO
+    private ComboBox getGroup(){
+        ComboBox group = new ComboBox("Group");
         group.setImmediate(true);
+        group.setNewItemsAllowed(true);
         group.setNewItemHandler(caption -> {
             group.removeAllItems();
             if (null != caption && !caption.isEmpty()) loadGroups(group, caption);
         });
-        group.addValueChangeListener(event -> {
-            if (null != group.getValue()) putParam("group_id", ((RespSrchCrtriaObj) group.getValue()).getId());
-        });
-        layout.addComponents(group);
-
-        return layout;
+        return group;
     }
 
     private VerticalLayout fillCityCountry(Collection<RespSrchCrtriaObj> countries, InfoRole role) {
         VerticalLayout layout = new VerticalLayout();
-        layout.setWidth(30, Unit.PERCENTAGE);
-        ComboBox countryCB = bindCountry(role);
-        ComboBox cityCB = bindCity(role);
-        countryCB.setWidth(30, Unit.PERCENTAGE);
+        ComboBox bindedCB[] = bindCountryRegionCity(role);
+        ComboBox countryCB = bindedCB[0];
+        ComboBox regionCB = bindedCB[1];
+        ComboBox cityCB = bindedCB[2];
         countryCB.setImmediate(true);
+
         Utils.bindItemsToComboBox(countryCB, countries);
 
         countryCB.addValueChangeListener(event -> {
-            cityCB.setVisible(true);
+            regionCB.setVisible(true);
             RespSrchCrtriaObj o = (RespSrchCrtriaObj) countryCB.getValue();
-            cityCB.removeAllItems();
+            regionCB.removeAllItems();
             if (null != o) {
-                loadCities(cityCB, o.getId(), null);
-                cityCB.setVisible(true);
-            } else cityCB.setVisible(false);
-            cityCB.setValue(null);
+                loadRegions(regionCB, o.getId());
+                regionCB.setVisible(true);
+            } else regionCB.setVisible(false);
+            regionCB.setValue(null);
         });
         layout.addComponent(countryCB);
-        cityCB.setImmediate(true);
-        cityCB.addValueChangeListener(event -> {
 
+        regionCB.setVisible(false);
+        regionCB.setImmediate(true);
+        regionCB.addValueChangeListener(event -> {
+            cityCB.setVisible(true);
+            RespSrchCrtriaObj cntry = (RespSrchCrtriaObj) countryCB.getValue();
+            RespSrchCrtriaObj rgn = (RespSrchCrtriaObj) regionCB.getValue();
+            cityCB.removeAllItems();
+            if (null != cntry && null != rgn) {
+                loadCities(cityCB, cntry.getId(), rgn.getId(), null);
+            }
+            cityCB.setValue(null);
         });
+        layout.addComponents(regionCB);
+
+        cityCB.setImmediate(true);
         cityCB.setNewItemsAllowed(true);
         cityCB.setNewItemHandler(newItemCaption -> {
             cityCB.removeAllItems();
-            RespSrchCrtriaObj o = (RespSrchCrtriaObj) countryCB.getValue();
-            loadCities(cityCB, o.getId(), newItemCaption);
+            RespSrchCrtriaObj cntry = (RespSrchCrtriaObj) countryCB.getValue();
+            RespSrchCrtriaObj rgn = (RespSrchCrtriaObj) regionCB.getValue();
+            loadCities(cityCB, cntry.getId(), rgn.getId(), newItemCaption);
             cityCB.setValue(newItemCaption);
         });
         cityCB.setVisible(false);
@@ -280,31 +299,29 @@ public class FindingForm extends VerticalLayout implements Serializable {
         return layout;
     }
 
-    private ComboBox bindCountry(InfoRole role) {
-        ComboBox country = null;
+    private ComboBox[] bindCountryRegionCity(InfoRole role) {
+        ComboBox[] result = new ComboBox[3];
+        ComboBox country = null, region = null, city = null;
         if (role == InfoRole.HOME) {
             country = homeCountry;
-        } else if (role == InfoRole.UNIVERSITY) {
-            country = universityCountry;
-        } else if (role == InfoRole.CURRENT) {
-            country = currentCountry;
-        }
-        return country;
-    }
-
-    private ComboBox bindCity(InfoRole role) {
-        ComboBox city = null;
-        if (role == InfoRole.HOME) {
+            region = homeRegion;
             city = homeCity;
         } else if (role == InfoRole.UNIVERSITY) {
+            country = universityCountry;
+            region = universityRegion;
             city = universityCity;
         } else if (role == InfoRole.CURRENT) {
+            country = currentCountry;
+            region = currentRegion;
             city = currentCity;
         }
-        return city;
+        result[0] = country;
+        result[1] = region;
+        result[2] = city;
+        return result;
     }
 
-    private HorizontalLayout addDate() {
+    private HorizontalLayout getBirthDate() {
         HorizontalLayout layout = new HorizontalLayout();
         ComboBox day = new ComboBox("Day"), month = new ComboBox("Month"), year = new ComboBox("Year");
         year.setImmediate(true);
@@ -334,10 +351,44 @@ public class FindingForm extends VerticalLayout implements Serializable {
         }
         day.setImmediate(true);
         day.addValueChangeListener(event -> {
-            if (null != day.getValue()) putParam("birth_day", (String) day.getValue());
+            if (null != day.getValue()) putParam("birth_day", String.valueOf(day.getValue()));
         });
         layout.addComponents(day);
         return layout;
+    }
+
+    private HorizontalLayout getAgeLayout() { //TODO error
+        HorizontalLayout ageLayout = new HorizontalLayout();
+        ComboBox ageFrom = new ComboBox("age from");
+        ComboBox ageTo = new ComboBox("age to");
+
+        for (int i = 1; i < 100; i++) {
+            ageFrom.addItem(i);
+            ageTo.addItem(i);
+        }
+        ageFrom.addValueChangeListener(event -> {
+            Integer from = (Integer) ageFrom.getValue();
+            Integer to = (Integer) ageTo.getValue();
+            if (null == from) return;
+            if (null != to && from > to) ageTo.removeAllItems();
+            for (int i = from; i < 100; i++) {
+                ageTo.addItem(i);
+            }
+            putParam("age_from", from);
+        });
+        ageTo.addValueChangeListener(event -> {
+            Integer from = (Integer) ageFrom.getValue();
+            Integer to = (Integer) ageTo.getValue();
+            if (null == to) return;
+            if (null != from && from > to) ageFrom.removeAllItems();
+            for (int i = 1; i < to; i++) {
+                ageFrom.addItem(i);
+            }
+            putParam("age_to", to);
+        });
+        ageLayout.addComponent(ageFrom);
+        ageLayout.addComponent(ageTo);
+        return ageLayout;
     }
 
 
@@ -347,11 +398,18 @@ public class FindingForm extends VerticalLayout implements Serializable {
         return service.getCriteriaList(Utils.GET_COUNTRIES_METHOD, map, 1000, 0);
     }
 
-    private void loadCities(ComboBox comboBox, long country, String name) {
-        MultiValueMap<String, String> map = new LinkedMultiValueMap<>(6);
+    private void loadRegions(ComboBox comboBox, long country) {
+        MultiValueMap<String, String> map = new LinkedMultiValueMap<>(4);
+        map.add("country_id", String.valueOf(country));
+        loader(comboBox, map, Utils.GET_REGIONS_METHOD);
+    }
+
+    private void loadCities(ComboBox comboBox, long country, long region, String name) {
+        MultiValueMap<String, String> map = new LinkedMultiValueMap<>(7);
         if (null != name) map.add("q", name);
         map.add("need_all", "1");
         map.add("country_id", String.valueOf(country));
+        map.add("region_id", String.valueOf(region));
         loader(comboBox, map, Utils.GET_CITIES_METHOD);
     }
 
@@ -372,7 +430,7 @@ public class FindingForm extends VerticalLayout implements Serializable {
     }
 
     private void loadGroups(ComboBox group, String name) {
-        MultiValueMap<String, String> map = new LinkedMultiValueMap<>(7);
+        MultiValueMap<String, String> map = new LinkedMultiValueMap<>(5);
         if (null != name) map.add("q", name);
         loader(group, map, Utils.GET_GROUPS_METHOD);
     }
