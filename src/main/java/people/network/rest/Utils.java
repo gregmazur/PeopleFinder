@@ -16,7 +16,10 @@ public class Utils {
     public static final String GET_SCHOOLS_METHOD = "database.getSchools";
     public static final String GET_FACULTIES_METHOD = "database.getFaculties";
     public static final String GET_REGIONS_METHOD = "database.getRegions";
+
     public static final String GET_GROUPS_METHOD = "groups.search";
+
+    public static final String GET_USERS_METHOD = "users.search";
 
     public static void bindItemsToComboBox(ComboBox comboBox, Collection items){
         for (Object o : items){

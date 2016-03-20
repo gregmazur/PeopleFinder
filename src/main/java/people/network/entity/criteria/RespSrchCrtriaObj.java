@@ -1,6 +1,6 @@
-package people.network.entity;
+package people.network.entity.criteria;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -12,8 +12,9 @@ import java.io.Serializable;
 
 @Getter
 @Setter
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class RespSrchCrtriaObj implements Serializable {
+
+    private static final long serialVersionUID = -4848270644711351479L;
 
     private String title;
     private String name;

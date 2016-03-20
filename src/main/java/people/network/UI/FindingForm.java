@@ -7,7 +7,7 @@ import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.*;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import people.network.entity.RespSrchCrtriaObj;
+import people.network.entity.criteria.RespSrchCrtriaObj;
 import people.network.rest.JsonService;
 import people.network.rest.Utils;
 

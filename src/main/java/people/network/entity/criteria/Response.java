@@ -1,4 +1,4 @@
-package people.network.entity;
+package people.network.entity.criteria;
 
 import lombok.Data;
 

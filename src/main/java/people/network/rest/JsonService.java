@@ -10,10 +10,11 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
-import people.network.entity.ResponseObject;
-import people.network.entity.RespSrchCrtriaObj;
+import people.network.entity.criteria.RespSrchCrtriaObj;
+import people.network.entity.criteria.ResponseObjectCriteria;
+import people.network.entity.user.ResponseObjectUsers;
+import people.network.entity.user.UserDetails;
 
-import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -42,27 +43,48 @@ public class JsonService {
     public List<RespSrchCrtriaObj> getCriteriaList(String method, MultiValueMap<String, String> params,
                                                            int count, int from) {
         if (null == params) params = new LinkedMultiValueMap<>(3);
-        params.add("v", "5.8");
-        params.add("access_token", accessToken);
-        params.add("count", String.valueOf(count));
-        if (0 < from) params.add("offset", String.valueOf(from));
-        UriComponentsBuilder uriBuilder = UriComponentsBuilder.newInstance()
-                .scheme("https").host("api.vk.com").path("/method/{method}").queryParams(params);
-        String url = uriBuilder.buildAndExpand(method).toUriString();
+        String url = buildURL(method,params,count,from);
         System.out.println(url);
 
         // marshaling the response from JSON to an
-        ResponseObject responseObject = null;
+        ResponseObjectCriteria responseObject;
         try {
-            responseObject = restTemplate.getForObject(url, ResponseObject.class);
+            responseObject = restTemplate.getForObject(url, ResponseObjectCriteria.class);
         } catch (ResourceAccessException e){
             Utils.showError();
             return Collections.emptyList();
         }
         RespSrchCrtriaObj[] objects = responseObject.getResponse().getItems();
         return Arrays.asList(objects);
+    }
 
+    public List<UserDetails> getUserList(String method, MultiValueMap<String, String> params,
+                                                   int count, int from) {
+        if (null == params) params = new LinkedMultiValueMap<>(3);
+        String url = buildURL(method,params,count,from);
+        System.out.println(url);
 
+        // marshaling the response from JSON to an
+        ResponseObjectUsers responseObject;
+        try {
+            responseObject = restTemplate.getForObject(url, ResponseObjectUsers.class);
+        } catch (ResourceAccessException e){
+            Utils.showError();
+            return Collections.emptyList();
+        }
+        UserDetails[] objects = responseObject.getResponse().getItems();
+        return Arrays.asList(objects);
+    }
+
+    private String buildURL(String method, MultiValueMap<String, String> params,
+                            int count, int from){
+        params.add("v", "5.8");
+        params.add("access_token", accessToken);
+        params.add("count", String.valueOf(count));
+        if (0 < from) params.add("offset", String.valueOf(from));
+        UriComponentsBuilder uriBuilder = UriComponentsBuilder.newInstance()
+                .scheme("https").host("api.vk.com").path("/method/{method}").queryParams(params);
+        return uriBuilder.buildAndExpand(method).toUriString();
     }
 }
 

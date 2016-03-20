@@ -132,7 +132,7 @@ public class ImageProcessing {
     private @NotNull Person createPerson(File file) throws IOException {
         Person p = new Person(file);
         MBFImage rgbImage = readRGBImage(file);
-        p.setMBFImage(rgbImage);
+        p.setMbfImage(rgbImage);
         p.setFImage(Transforms.calculateIntensity(rgbImage));
         p.setFName(file.getName());
         return p;
