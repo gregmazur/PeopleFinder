@@ -42,7 +42,7 @@ public class JsonService {
      */
     public List<RespSrchCrtriaObj> getCriteriaList(String method, MultiValueMap<String, String> params,
                                                            int count, int from) {
-        if (null == params) params = new LinkedMultiValueMap<>(3);
+        if (null == params) return Collections.emptyList();
         String url = buildURL(method,params,count,from);
         System.out.println(url);
 
@@ -60,7 +60,7 @@ public class JsonService {
 
     public List<UserDetails> getUserList(String method, MultiValueMap<String, String> params,
                                                    int count, int from) {
-        if (null == params) params = new LinkedMultiValueMap<>(3);
+        if (null == params) return Collections.emptyList();
         String url = buildURL(method,params,count,from);
         System.out.println(url);
 
