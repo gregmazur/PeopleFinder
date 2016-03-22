@@ -41,9 +41,9 @@ public class JsonService {
      * @return
      */
     public List<RespSrchCrtriaObj> getCriteriaList(String method, MultiValueMap<String, String> params,
-                                                           int count, int from) {
+                                                   int count, int from) {
         if (null == params) return Collections.emptyList();
-        String url = buildURL(method,params,count,from);
+        String url = buildURL(method, params, count, from);
         System.out.println(url);
 
         // marshaling the response from JSON to an
@@ -59,16 +59,16 @@ public class JsonService {
     }
 
     public List<UserDetails> getUserList(String method, MultiValueMap<String, String> params,
-                                                   int count, int from) {
+                                         int count, int from) {
         if (null == params) return Collections.emptyList();
-        String url = buildURL(method,params,count,from);
+        String url = buildURL(method, params, count, from);
         System.out.println(url);
 
         // marshaling the response from JSON to an
         ResponseObjectUsers responseObject;
         try {
             responseObject = restTemplate.getForObject(url, ResponseObjectUsers.class);
-        } catch (ResourceAccessException e){
+        } catch (ResourceAccessException e) {
             Utils.showError();
             return Collections.emptyList();
         }
@@ -77,7 +77,7 @@ public class JsonService {
     }
 
     private String buildURL(String method, MultiValueMap<String, String> params,
-                            int count, int from){
+                            int count, int from) {
         params.add("v", "5.8");
         params.add("access_token", accessToken);
         params.add("count", String.valueOf(count));

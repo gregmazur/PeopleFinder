@@ -1,14 +1,12 @@
 package people.network.UI;
 
 import com.vaadin.data.Property;
-import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.*;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import people.network.entity.criteria.RespSrchCrtriaObj;
-import people.network.rest.JsonService;
 import people.network.rest.Utils;
 
 import java.io.Serializable;
@@ -24,8 +22,7 @@ public class FindingForm extends VerticalLayout implements Serializable, View {
 
     private static final long serialVersionUID = -6575751250735498511L;
 
-    private JsonService service;
-    private MultiValueMap<String, String> userSearchParams;
+    private MainPage mainPage;
     ComboBox homeCountry = new ComboBox("Home country"), homeCity = new ComboBox("Home city"),
             homeRegion = new ComboBox("Home region"),
 
@@ -36,7 +33,6 @@ public class FindingForm extends VerticalLayout implements Serializable, View {
             universityRegion = new ComboBox("University region");
     private TextField name = new TextField("name");
     private TextArea result;
-    private Navigator navigator;
 
     private enum InfoRole {
         HOME, UNIVERSITY, CURRENT
@@ -65,16 +61,17 @@ public class FindingForm extends VerticalLayout implements Serializable, View {
     }
 
 
-    public FindingForm(JsonService service, MultiValueMap map, Navigator navigator) {
+    public FindingForm(MainPage mainPage) {
         super();
-        this.service = service;
-        this.userSearchParams = map;
-        this.navigator = navigator;
+        this.mainPage = mainPage;
         init();
     }
 
     private void init() {
         setResponsive(true);
+        String token = getAccessToken();
+        if (null != token) mainPage.getService().setAccessToken(token);
+        else openSignInWindow();
         Collection<RespSrchCrtriaObj> countries = getCountriesList();
         name.setWidth(50, Unit.PERCENTAGE);
         addComponent(name);
@@ -113,13 +110,41 @@ public class FindingForm extends VerticalLayout implements Serializable, View {
         Button submit = new Button("Submit", event -> {
             String name = this.name.getValue();
             if (null != name) putParam("q", name);
-            navigator.navigateTo(MainPage.PEOPLE_FOUND);
+            mainPage.getNavigator().navigateTo(MainPage.PEOPLE_FOUND);
         });
         addComponent(submit);
         setComponentAlignment(submit, Alignment.MIDDLE_CENTER);
         result = new TextArea();
         addComponent(result);
         setComponentAlignment(result, Alignment.MIDDLE_CENTER);
+    }
+
+    private String getAccessToken() {
+        String uri = mainPage.getPage().getUriFragment();
+        if (null != uri && uri.indexOf("access_token") > -1) return uri.substring(uri.indexOf("=") + 1, uri.indexOf("&"));
+        return null;
+    }
+
+    private void openSignInWindow() {
+        Window subWindow = new Window("Welcome");
+        subWindow.setModal(true);
+        VerticalLayout subContent = new VerticalLayout();
+        subContent.setMargin(true);
+        subWindow.setContent(subContent);
+        subWindow.setWidth(30, Unit.PERCENTAGE);
+        subWindow.setHeight(30, Unit.PERCENTAGE);
+
+        subContent.addComponent(new Label("Please login first"));
+        String link = "https://oauth.vk.com/authorize?client_id=5343222&display=page&redirect_uri=http://localhost:8080&scope=friends&response_type=token&v=5.8";
+        subContent.addComponent(new Button("LOGIN", event -> {
+            mainPage.getPage().open(link, "login");
+            subWindow.close();
+        }));
+        // Center it in the browser window
+        subWindow.center();
+
+        // Open it in the UI
+        mainPage.addWindow(subWindow);
     }
 
     private VerticalLayout homeInfo(Collection<RespSrchCrtriaObj> countries) {
@@ -395,7 +420,7 @@ public class FindingForm extends VerticalLayout implements Serializable, View {
     private Collection<RespSrchCrtriaObj> getCountriesList() {
         MultiValueMap<String, String> map = new LinkedMultiValueMap<>(4);
         map.add("need_all", "1");
-        return service.getCriteriaList(Utils.GET_COUNTRIES_METHOD, map, 1000, 0);
+        return mainPage.getService().getCriteriaList(Utils.GET_COUNTRIES_METHOD, map, 1000, 0);
     }
 
     private void loadRegions(ComboBox comboBox, long country) {
@@ -436,14 +461,14 @@ public class FindingForm extends VerticalLayout implements Serializable, View {
     }
 
     private void loader(ComboBox comboBox, MultiValueMap<String, String> map, String method) {
-        Collection<RespSrchCrtriaObj> items = service.getCriteriaList(method, map, 1000, 0);
+        Collection<RespSrchCrtriaObj> items = mainPage.getService().getCriteriaList(method, map, 1000, 0);
         Utils.bindItemsToComboBox(comboBox, items);
     }
 
     private void putParam(String key, String value) {
         LinkedList<String> list = new LinkedList<>();
         list.add(value);
-        userSearchParams.put(key, list);
+        mainPage.getSearchPerson().getUserSearchParams().put(key, list);
     }
 
     private void putParam(String key, long value) {
