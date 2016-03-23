@@ -19,11 +19,16 @@
 package people.network.entity;
 
 import lombok.Data;
+import org.openimaj.image.FImage;
+import org.openimaj.image.ImageUtilities;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 /**
  *
@@ -32,6 +37,22 @@ import java.util.Collection;
  **/
 @Data
 public class SearchPerson {
+
     private Collection<InputStream> images;
     private MultiValueMap<String, String> userSearchParams = new LinkedMultiValueMap<>(35);
+
+    public SearchPerson() {}
+
+    public List<FImage> getFImages() {
+        List<FImage> fImages = new ArrayList<>(images.size());
+        for(InputStream inStream : images) {
+            try {
+                FImage fImage = ImageUtilities.readF(inStream);
+                fImages.add(fImage);
+            } catch(IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return fImages;
+    }
 }

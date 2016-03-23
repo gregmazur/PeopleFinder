@@ -1,18 +1,19 @@
 package people.network.image;
 
-import org.openimaj.image.DisplayUtilities;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import org.openimaj.image.FImage;
+import org.openimaj.image.processing.face.detection.DatasetFaceDetector;
 import org.openimaj.image.processing.face.detection.DetectedFace;
 import org.openimaj.image.processing.face.detection.FaceDetector;
 import org.openimaj.image.processing.face.feature.FacialFeature;
 import org.openimaj.image.processing.face.feature.FacialFeatureExtractor;
 import org.openimaj.image.processing.face.feature.comparison.FacialFeatureComparator;
-import org.openimaj.math.geometry.shape.Rectangle;
-import org.openimaj.math.matrix.similarity.SimilarityMatrix;
-import org.openimaj.math.matrix.similarity.processor.InvertData;
-import people.network.entity.Person;
+import people.network.entity.SearchPerson;
+import people.network.entity.user.UserDetails;
 
 import java.util.*;
+import java.util.Map.Entry;
 
 /**
  * Face similarity engine
@@ -25,16 +26,13 @@ public class CustomFaceSimilarityEngine<D extends DetectedFace, F extends Facial
     private FacialFeatureExtractor<F, D> extractor;
     private FacialFeatureComparator<F> comparator;
 
-    private Map<String, Rectangle> boundingBoxes;
-    private Map<String, F> featureCache;
-    private Map<String, List<D>> detectedFaceCache;
-    private LinkedHashMap<String, Map<String, Double>> similarityMatrix;
+    private Map<Long, F> featureCache;
+    private Map<Long, List<D>> detectedFaceCache;
 
-    private String potentialId;
-    private List<D> potentialFaces;
+    private D searchFace;
+    private Multimap<Long, D> potentialFaces;
 
-    private String personId;
-    private List<D> personFaces;
+    private Map<Long, UserDetails> personMap;
 
     private boolean cache;
 
@@ -55,10 +53,10 @@ public class CustomFaceSimilarityEngine<D extends DetectedFace, F extends Facial
         this.extractor = extractor;
         this.comparator = comparator;
 
-        this.similarityMatrix = new LinkedHashMap<>(256);
-        this.boundingBoxes = new HashMap<>(256);
         featureCache = new HashMap<>(256);
         detectedFaceCache = new HashMap<>(256);
+        potentialFaces = ArrayListMultimap.create();
+        personMap = new HashMap<>(256);
     }
 
     /**
@@ -83,75 +81,48 @@ public class CustomFaceSimilarityEngine<D extends DetectedFace, F extends Facial
      *
      * @param searchPerson search person
      */
-    public void setSearchPerson(Person searchPerson) {
-        this.personId = searchPerson.toString();
-        this.personFaces = getDetectedFaces(personId, searchPerson.getFImage());
-        updateBoundingBox(this.personFaces, personId);
+    public void setSearchPerson(SearchPerson searchPerson) {
+        List<FImage> fImages = searchPerson.getFImages();
+        List<D> faces = new ArrayList<>();
+        for(FImage fImage : fImages) {
+            faces.addAll(getDetectedFaces(fImage));
+        }
+        this.searchFace = DatasetFaceDetector.getBiggest(faces);
     }
 
     /**
-     * Set the potential person.
-     * After calling this method should be called {@link #findSimilarities()}()
+     * Set the potential persons
      *
-     * @param potentialPerson potential person
+     * @param personList potential person list
      */
-    public void setPotentialPerson(Person potentialPerson) {
-        this.potentialId = potentialPerson.toString();
-        this.potentialFaces = getDetectedFaces(potentialId, potentialPerson.getFImage());
-        updateBoundingBox(this.potentialFaces, potentialId);
-    }
-
-    /**
-     * Set the search person
-     *
-     * @param personId    search person id
-     * @param personImage search person's image
-     */
-    public void setSearchPerson(String personId, FImage personImage) {
-        this.personId = personId;
-        this.personFaces = getDetectedFaces(personId, personImage);
-        updateBoundingBox(this.personFaces, personId);
-    }
-
-    /**
-     * Set the potential person.
-     * After calling this method should be called {@link #findSimilarities()}()
-     *
-     * @param personId    potential person id
-     * @param personImage potential person's image
-     */
-    public void setPotentialPerson(String personId, FImage personImage) {
-        this.potentialId = personId;
-        this.potentialFaces = getDetectedFaces(potentialId, personImage);
-        updateBoundingBox(this.potentialFaces, potentialId);
-    }
-
-    public void setPotentialPersons(List<Person> personList) {
-        int size = personList.size();
-        for(Person person : personList) {
-            System.out.println(String.format("Processing person %d of %d", person.getId(), size));
-            String personId = person.toString();
-            FImage fImage = person.getFImage();
-            setPotentialPerson(personId, fImage);
-            findSimilarities();
+    public void setPotentialPersons(Collection<UserDetails> personList) {
+        for(UserDetails person : personList) {
+            boolean isLoaded = person.loadImage();
+            if(!isLoaded)
+                continue;
+            Long personId = person.getId();
+            FImage personFImage = person.getFImage();
+            List<D> faces = getDetectedFaces(personId, personFImage);
+            potentialFaces.putAll(personId, faces);
+            personMap.put(personId, person);
         }
     }
 
-    private List<D> getDetectedFaces(String personId, FImage personImage) {
+    private List<D> getDetectedFaces(Long personId, FImage personImage) {
         List<D> toRet;
         if(this.cache) {
             toRet = this.detectedFaceCache.get(personId);
             if(toRet == null) {
-                toRet = getDetectedFacesWithConfidence(personImage);
+                toRet = getDetectedFaces(personImage);
                 this.detectedFaceCache.put(personId, toRet);
             }
         } else {
-            toRet = getDetectedFacesWithConfidence(personImage);
+            toRet = getDetectedFaces(personImage);
         }
         return toRet;
     }
 
-    private List<D> getDetectedFacesWithConfidence(FImage image) {
+    private List<D> getDetectedFaces(FImage image) {
         List<D> facesList = this.detector.detectFaces(image);
         List<D> newFacesList = new ArrayList<>(facesList.size());
         for(D face : facesList) {
@@ -163,105 +134,56 @@ public class CustomFaceSimilarityEngine<D extends DetectedFace, F extends Facial
         return newFacesList;
     }
 
-    private void updateBoundingBox(List<D> faces, String imageId) {
-        // We need to store the first one if we're running withFirst = true
-        if (boundingBoxes != null)
-            for (int ff = 0; ff < faces.size(); ff++)
-                if (boundingBoxes.get(imageId + ":" + ff) == null)
-                    boundingBoxes.put(imageId + ":" + ff, faces.get(ff)
-                            .getBounds());
-    }
-
-
     /**
      * Compute the similarities between faces of search person and potential person
      */
-    public void findSimilarities() {
-        // Now compare all the faces in the first image
-        // with all the faces in the second image.
-        for (int ii = 0; ii < potentialFaces.size(); ii++) {
-            String face1id = potentialId + ":" + ii;
-            D f1f = potentialFaces.get(ii);
+    public void calculateSimilarities() {
+        Collection<Entry<Long, D>> entries = potentialFaces.entries();
+        F searchFaceFeature = getFaceFeature(searchFace);
 
-            F f1fv = getFeature(face1id, f1f);
-            //
-            // NOTE that the distance matrix will be symmetrical
-            // so we only have to do half the comparisons.
-            for (int jj = 0; jj < personFaces.size(); jj++) {
-                double d = 0;
-                String face2id = null;
+        for(Entry<Long, D> entry : entries) {
+            Long personId = entry.getKey();
+            D face = entry.getValue();
+            F potentialFaceFeature = getFaceFeature(personId, face);
+            double d = comparator.compare(potentialFaceFeature, searchFaceFeature);
 
-                // If we're comparing the same face in the same image
-                // we can assume the distance is zero. Saves doing a match.
-                if (potentialFaces == personFaces && ii == jj) {
-                    d = 0;
-                    face2id = face1id;
-                } else {
-                    // Compare the two feature vectors using the chosen
-                    // distance metric.
-                    D f2f = personFaces.get(jj);
-                    face2id = personId + ":" + jj;
+            UserDetails p = personMap.get(personId);
+            if(p == null) continue;
 
-                    // F f2fv = featureFactory.createFeature(f2f, false);
-                    F f2fv = getFeature(face2id, f2f);
-
-                    d = comparator.compare(f1fv, f2fv);
-                }
-
-                // Put the result in the result map
-                Map<String, Double> mm = this.similarityMatrix.get(face1id);
-                if (mm == null)
-                    this.similarityMatrix.put(face1id, mm = new HashMap<>());
-                mm.put(face2id, d);
+            if(comparator.isDistance()) {
+                if(p.getSimilarity() < d) p.setSimilarity(d);
+            } else {
+                if(p.getSimilarity() > d) p.setSimilarity(d);
             }
+
         }
     }
 
-    private F getFeature(String id, D face) {
+    private F getFaceFeature(Long id, D face) {
         F toRet;
         if (!cache) {
-            toRet = extractor.extractFeature(face);
+            toRet = getFaceFeature(face);
         } else {
             //String combinedID = String.format("%s:%b", id);
             toRet = this.featureCache.get(id);
 
             if(toRet == null){
-                toRet = extractor.extractFeature(face);
+                toRet = getFaceFeature(face);
                 this.featureCache.put(id, toRet);
             }
         }
         return toRet;
     }
 
-    /**
-     * @return The similarity dictionary structured as: {image0:face0 => {image0:face0 => DISTANCE,...},...,}
-     */
-    public Map<String, Map<String, Double>> getSimilarityDictionary() {
-        return this.similarityMatrix;
+    private F getFaceFeature(D face) {
+        return extractor.extractFeature(face);
     }
 
-    /**
-     * Get the similarity matrix computed by {@link #findSimilarities()}.
-     * @param invertIfRequired invert distances into similarities if required.
-     * @return the similarity matrix
-     */
-    public SimilarityMatrix getSimilarityMatrix(boolean invertIfRequired) {
-        Set<String> keys = this.similarityMatrix.keySet();
-        String[] indexArr = keys.toArray(new String[keys.size()]);
-        SimilarityMatrix simMatrix = new SimilarityMatrix(indexArr);
-        for (int i = 0; i < indexArr.length; i++) {
-            String x = indexArr[i];
-            for (int j = 0; j < indexArr.length; j++) {
-                String y = indexArr[j];
-                simMatrix.set(i, j, this.similarityMatrix.get(x).get(y));
-            }
-        }
 
-        if(this.comparator.isDistance() && invertIfRequired) {
-            simMatrix.processInplace(new InvertData());
-        }
-        return simMatrix;
+    public Map<Long, UserDetails> getPersonMap() {
+        return this.personMap;
     }
+
 
     public FaceDetector<D, FImage> detector() {
         return detector;
@@ -273,13 +195,6 @@ public class CustomFaceSimilarityEngine<D extends DetectedFace, F extends Facial
 
     public FacialFeatureComparator<F> comparator() {
         return comparator;
-    }
-
-    /**
-     * @return the bounding boxes of the detected faces
-     */
-    public Map<String, Rectangle> getBoundingBoxes() {
-        return this.boundingBoxes;
     }
 
     /**
@@ -309,13 +224,10 @@ public class CustomFaceSimilarityEngine<D extends DetectedFace, F extends Facial
     }
 
     public void resetEngine() {
-        boundingBoxes.clear();
         featureCache.clear();
         detectedFaceCache.clear();
-        similarityMatrix.clear();
-        potentialId = null;
         potentialFaces.clear();
-        personId = null;
-        personFaces.clear();
+        searchFace = null;
+        personMap.clear();
     }
 }

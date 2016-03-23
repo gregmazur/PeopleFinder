@@ -10,6 +10,7 @@ import org.springframework.util.MultiValueMap;
 import people.network.entity.user.UserDetails;
 import people.network.rest.Utils;
 
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -29,11 +30,15 @@ public class PeopleFoundView extends VerticalLayout implements View {
         map.add("fields", "photo_max_orig");
         List<UserDetails> userDetails = mainPage.getService().getUserList(Utils.GET_USERS_METHOD, map, 1000, 0);
         for (Object o : userDetails){
-            UserDetails details = (UserDetails) o;
-            HorizontalLayout layout = new HorizontalLayout(new Label(details.toString()));
-            StreamResource resource = new StreamResource(new ImageStreamResource(details.getPicture()), o.toString());
-            layout.setIcon(resource);
-            addComponents(layout);
+            try {
+                UserDetails details = (UserDetails) o;
+                HorizontalLayout layout = new HorizontalLayout(new Label(details.toString()));
+                StreamResource resource = new StreamResource(new ImageStreamResource(details.getPictureStream()), o.toString());
+                layout.setIcon(resource);
+                addComponents(layout);
+            } catch(IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 }
