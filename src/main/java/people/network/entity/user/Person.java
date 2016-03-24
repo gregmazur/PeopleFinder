@@ -5,9 +5,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import org.openimaj.image.FImage;
 import org.openimaj.image.ImageUtilities;
+import people.network.service.Utils;
 
 import javax.imageio.ImageIO;
 import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.net.URL;
 
 
@@ -51,12 +55,12 @@ public class Person implements Serializable {
 
     public FImage getFImagePic() {
         try {
+            System.out.println(picURL);
             URL url = new URL(picURL);
-            fImage = ImageUtilities.readF(url.openStream());
+            fImage = ImageUtilities.readF(url.openConnection(Utils.getProxy()).getInputStream());
             return fImage;
         } catch(Exception e) {
             e.printStackTrace();
-            System.out.println(picURL);
             fImage = null;
             return null;
         }

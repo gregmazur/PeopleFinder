@@ -13,6 +13,7 @@ import people.network.service.image.ImageProcessing;
 import people.network.service.rest.Utils;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collection;
 import java.util.List;
 
@@ -39,9 +40,10 @@ public class PeopleFoundView extends VerticalLayout implements View {
             try {
                 Person person = (Person) o;
                 System.out.println(String.format("Proc person %d of %d.", i++, result.size()));
-                if(person.getPictureStream() != null) {
+                InputStream stream = person.getPictureStream();
+                if(stream != null) {
                     HorizontalLayout layout = new HorizontalLayout(new Label(person.toString()));
-                    StreamResource resource = new StreamResource(new ImageStreamResource(person.getPictureStream()), o.toString());
+                    StreamResource resource = new StreamResource(new ImageStreamResource(stream), o.toString());
                     layout.setIcon(resource);
                     addComponents(layout);
                 }
