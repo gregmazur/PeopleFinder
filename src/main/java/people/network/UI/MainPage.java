@@ -24,7 +24,7 @@ public class MainPage extends UI {
     public static final String ENTERING_FORM = "";
     public static final String PEOPLE_FOUND = "PeopleFound";
 
-    private SearchPerson searchPerson;
+    private SearchPerson searchPerson = new SearchPerson();
     private Navigator navigator;
 
     @Autowired

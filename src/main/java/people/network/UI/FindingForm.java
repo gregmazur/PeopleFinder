@@ -6,9 +6,12 @@ import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.*;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.vaadin.easyuploads.UploadField;
 import people.network.entity.criteria.RespSrchCrtriaObj;
 import people.network.service.rest.Utils;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.YearMonth;
@@ -106,6 +109,11 @@ public class FindingForm extends VerticalLayout implements Serializable, View {
         addComponents(group);
         group.setWidth(50, Unit.PERCENTAGE);
         setComponentAlignment(group, Alignment.MIDDLE_CENTER);
+
+        UploadField uploadField = getPictureUploadField();
+        addComponent(uploadField);
+        uploadField.setWidth(50, Unit.PERCENTAGE);
+        setComponentAlignment(uploadField, Alignment.MIDDLE_CENTER);
 
         Button submit = new Button("Submit", event -> {
             String name = this.name.getValue();
@@ -414,6 +422,18 @@ public class FindingForm extends VerticalLayout implements Serializable, View {
         ageLayout.addComponent(ageFrom);
         ageLayout.addComponent(ageTo);
         return ageLayout;
+    }
+
+    private UploadField getPictureUploadField(){
+        UploadField uploadField = new UploadField();
+        uploadField.setFieldType(UploadField.FieldType.BYTE_ARRAY);
+        uploadField.addListener((Listener) event -> {
+            Object value = uploadField.getValue();
+            byte[] data = (byte[]) value;
+            InputStream stream = new ByteArrayInputStream(data);
+            mainPage.getSearchPerson().getImages().add(stream);
+        });
+        return uploadField;
     }
 
 

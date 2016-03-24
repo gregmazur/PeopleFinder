@@ -38,7 +38,7 @@ import java.util.List;
 @Data
 public class SearchPerson {
 
-    private Collection<InputStream> images;
+    private Collection<InputStream> images = new ArrayList<>();
     private MultiValueMap<String, String> userSearchParams = new LinkedMultiValueMap<>(35);
 
     public SearchPerson() {}

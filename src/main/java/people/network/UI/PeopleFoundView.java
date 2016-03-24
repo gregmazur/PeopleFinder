@@ -8,9 +8,12 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
 import org.springframework.util.MultiValueMap;
 import people.network.entity.user.Person;
+import people.network.service.ImageService;
+import people.network.service.image.ImageProcessing;
 import people.network.service.rest.Utils;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -27,13 +30,15 @@ public class PeopleFoundView extends VerticalLayout implements View {
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent event) {
         MultiValueMap<String,String> map = mainPage.getSearchPerson().getUserSearchParams();
-        map.add("fields", "photo_max_orig");
-        List<Person> userDetails = mainPage.getService().getUserList(Utils.GET_USERS_METHOD, map, 1000, 0);
-        for (Object o : userDetails){
+        map.add("fields", "photo_max_orig,has_photo");
+        List<Person> potentialPersons = mainPage.getService().getUserList(Utils.GET_USERS_METHOD, map, 1000, 0);
+        ImageService imageService = ImageProcessing.createInstance();
+        Collection<Person> result = imageService.getSimilarPeople(mainPage.getSearchPerson(), potentialPersons);
+        for (Object o : result){
             try {
-                Person details = (Person) o;
-                HorizontalLayout layout = new HorizontalLayout(new Label(details.toString()));
-                StreamResource resource = new StreamResource(new ImageStreamResource(details.getPictureStream()), o.toString());
+                Person person = (Person) o;
+                HorizontalLayout layout = new HorizontalLayout(new Label(person.toString()));
+                StreamResource resource = new StreamResource(new ImageStreamResource(person.getPictureStream()), o.toString());
                 layout.setIcon(resource);
                 addComponents(layout);
             } catch(IOException e) {
