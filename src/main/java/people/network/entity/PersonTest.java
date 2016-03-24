@@ -15,7 +15,7 @@ import java.io.File;
  **/
 @Getter
 @Setter
-public class Person {
+public class PersonTest {
 
     private long id;
 
@@ -26,9 +26,9 @@ public class Person {
     private MBFImage mbfImage;
     private FImage fImage;
 
-    public Person() { }
+    public PersonTest() { }
 
-    public Person(File imgFile) {
+    public PersonTest(File imgFile) {
         this.imgFile = imgFile;
     }
 

@@ -14,7 +14,7 @@ import java.net.URL;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class UserDetails implements Serializable{
+public class Person implements Serializable {
 
     private static final long serialVersionUID = 6083957108569951546L;
 
@@ -27,8 +27,7 @@ public class UserDetails implements Serializable{
     private String picURL;
 
     private double similarity;
-    private URL url;
-    private transient FImage fImage;
+
 
     @Override
     public String toString() {
@@ -38,23 +37,35 @@ public class UserDetails implements Serializable{
                 '}';
     }
 
-    public boolean loadImage() {
+    @Override
+    public boolean equals(Object o) {
+        if(this == o) return true;
+        if(!(o instanceof Person)) return false;
+        Person that = (Person) o;
+        return id == that.id;
+    }
+
+    @Override
+    public int hashCode() {
+        return (int) (id ^ (id >>> 32));
+    }
+
+    public FImage getFImagePic() {
         try {
-            url = new URL(picURL);
-            fImage = ImageUtilities.readF(url);
-        } catch(Throwable th) {
-            url = null;
-            fImage = null;
-            return false;
+            URL url = new URL(picURL);
+            return ImageUtilities.readF(url);
+        } catch(Exception e) {
+            e.printStackTrace();
+            return null;
         }
-        return true;
     }
 
     public InputStream getPictureStream() throws IOException {
+        URL url = new URL(picURL);
         return url.openStream();
     }
 
-    public static int compareBySimilarity(UserDetails u1, UserDetails u2) {
+    public static int compareBySimilarity(Person u1, Person u2) {
         return Double.compare(u1.getSimilarity(), u2.getSimilarity());
     }
 }

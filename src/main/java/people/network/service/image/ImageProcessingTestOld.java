@@ -23,7 +23,7 @@ import org.openimaj.image.processing.face.recognition.EigenFaceRecogniser;
 import org.openimaj.image.processing.face.recognition.FaceRecogniser;
 import org.openimaj.ml.annotation.ScoredAnnotation;
 import org.openimaj.util.pair.IndependentPair;
-import people.network.entity.Person;
+import people.network.entity.PersonTest;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,16 +35,16 @@ import java.util.List;
 /**
  * @author Yemelin A.M.
  **/
-public class ImageProcessingTest {
+public class ImageProcessingTestOld {
 
     private static final String TEST_IMG_FOLDER = "D:\\img_test\\potential";
     private static final String TEST_ME_IMG_FOLDER = "D:\\img_test\\me_test";
     private static long _id = 1;
 
     private CustomFaceSimilarityEngine<KEDetectedFace, FacePatchFeature> _faceSimilarityEngine;
-    private CustomFaceRecognitionEngine<KEDetectedFace, Person> _faceRecognitionEngine;
+    private CustomFaceRecognitionEngine<KEDetectedFace, PersonTest> _faceRecognitionEngine;
 
-    private ImageProcessingTest() {
+    private ImageProcessingTestOld() {
         FKEFaceDetector faceDetector = new FKEFaceDetector(HaarCascadeDetector.BuiltInCascade.frontalface_alt.load());
         FacialFeatureExtractor<FacePatchFeature, KEDetectedFace> featureExtractor = new FaceImageFeature.Extractor();
         //FacialFeatureExtractor<FacePatchFeature, KEDetectedFace> featureExtractor = new FacePatchFeature.Extractor();
@@ -60,16 +60,16 @@ public class ImageProcessingTest {
         // Create face stuff
         //FKEFaceDetector faceDetector = new FKEFaceDetector(new HaarCascadeDetector());
         //Aligners best for FKEFaceDetector:  AffineAligner, MeshWarpAligner, RotateScaleAligner:
-        FaceRecogniser<KEDetectedFace, Person> faceRecognizer = EigenFaceRecogniser.create(20, new RotateScaleAligner(), 1, DoubleFVComparison.EUCLIDEAN, 10);
+        FaceRecogniser<KEDetectedFace, PersonTest> faceRecognizer = EigenFaceRecogniser.create(20, new RotateScaleAligner(), 1, DoubleFVComparison.EUCLIDEAN, 10);
         _faceRecognitionEngine = CustomFaceRecognitionEngine.create(faceDetector, faceRecognizer);
     }
 
-    public static ImageProcessingTest createInstance() {
-        return new ImageProcessingTest();
+    public static ImageProcessingTestOld createInstance() {
+        return new ImageProcessingTestOld();
     }
 
     public void doImageProcessingTestRecognition() throws IOException {
-        Person p = new Person();
+        PersonTest p = new PersonTest();
         p.setId(777L);
         p.setFName("Arty");
 
@@ -79,7 +79,7 @@ public class ImageProcessingTest {
         ListBackedDataset<FImage> listDataSet = new ListBackedDataset<>();
         listDataSet.addAll(meImgList);
 
-        MapBackedDataset<Person, ListDataset<FImage>, FImage> mapDataSet = new MapBackedDataset<>();
+        MapBackedDataset<PersonTest, ListDataset<FImage>, FImage> mapDataSet = new MapBackedDataset<>();
         mapDataSet.add(p, listDataSet);
         System.out.println("Training started...");
         _faceRecognitionEngine.train(mapDataSet);
@@ -90,7 +90,7 @@ public class ImageProcessingTest {
 
         try {
 
-            List<IndependentPair<KEDetectedFace, List<ScoredAnnotation<Person>>>> rfaces = _faceRecognitionEngine.recognise(img);;
+            List<IndependentPair<KEDetectedFace, List<ScoredAnnotation<PersonTest>>>> rfaces = _faceRecognitionEngine.recognise(img);;
             DisplayUtilities.display(rfaces.get(0).getFirstObject().getFacePatch());
             rfaces.get(0).getSecondObject();
 
@@ -102,15 +102,15 @@ public class ImageProcessingTest {
     public void doImageProcessingTestSimiliarity() throws IOException {
         String testFile = "D:\\img_test\\Photo_(16).jpg";
 
-        Person searchPerson = createPerson(new File(testFile));
+        PersonTest searchPerson = createPerson(new File(testFile));
         searchPerson.setId(777L);
-        List<Person> potentialPersonList = getTestPersons();
+        List<PersonTest> potentialPersonList = getTestPersons();
 
         //_faceEngine.setFaceConfidence(25.0f);
         //_faceSimilarityEngine.setSearchPerson(searchPerson);
         //_faceSimilarityEngine.setPotentialPersons(potentialPersonList);
 
-       // System.out.println(_faceSimilarityEngine.getSimilarityDictionary());
+        //System.out.println(_faceSimilarityEngine.getSimilarityDictionary());
 
         /*List<FImage> list = new ArrayList<>();
         list.add(testImage);
@@ -154,22 +154,22 @@ public class ImageProcessingTest {
         return imgDir.listFiles();
     }
 
-    private List<Person> getTestPersons() throws IOException {
+    private List<PersonTest> getTestPersons() throws IOException {
         File[] fileArr = getTestFiles();
         if(fileArr == null || fileArr.length == 0)
             return Collections.emptyList();
-        List<Person> list = new ArrayList<>(fileArr.length);
+        List<PersonTest> list = new ArrayList<>(fileArr.length);
         long id = 1;
         for(File file : fileArr) {
-            Person p = createPerson(file);
+            PersonTest p = createPerson(file);
             p.setId(id++);
             list.add(p);
         }
         return list;
     }
 
-    private @NotNull Person createPerson(File file) throws IOException {
-        Person p = new Person(file);
+    private @NotNull PersonTest createPerson(File file) throws IOException {
+        PersonTest p = new PersonTest(file);
         MBFImage rgbImage = readRGBImage(file);
         p.setMbfImage(rgbImage);
         p.setFImage(Transforms.calculateIntensity(rgbImage));

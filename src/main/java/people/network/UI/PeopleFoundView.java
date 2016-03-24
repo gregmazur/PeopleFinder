@@ -7,7 +7,7 @@ import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
 import org.springframework.util.MultiValueMap;
-import people.network.entity.user.UserDetails;
+import people.network.entity.user.Person;
 import people.network.service.rest.Utils;
 
 import java.io.IOException;
@@ -28,10 +28,10 @@ public class PeopleFoundView extends VerticalLayout implements View {
     public void enter(ViewChangeListener.ViewChangeEvent event) {
         MultiValueMap<String,String> map = mainPage.getSearchPerson().getUserSearchParams();
         map.add("fields", "photo_max_orig");
-        List<UserDetails> userDetails = mainPage.getService().getUserList(Utils.GET_USERS_METHOD, map, 1000, 0);
+        List<Person> userDetails = mainPage.getService().getUserList(Utils.GET_USERS_METHOD, map, 1000, 0);
         for (Object o : userDetails){
             try {
-                UserDetails details = (UserDetails) o;
+                Person details = (Person) o;
                 HorizontalLayout layout = new HorizontalLayout(new Label(details.toString()));
                 StreamResource resource = new StreamResource(new ImageStreamResource(details.getPictureStream()), o.toString());
                 layout.setIcon(resource);

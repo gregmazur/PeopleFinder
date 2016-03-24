@@ -1,5 +1,8 @@
 package people.network.service.image;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import org.openimaj.image.FImage;
@@ -10,10 +13,16 @@ import org.openimaj.image.processing.face.feature.FacialFeature;
 import org.openimaj.image.processing.face.feature.FacialFeatureExtractor;
 import org.openimaj.image.processing.face.feature.comparison.FacialFeatureComparator;
 import people.network.entity.SearchPerson;
-import people.network.entity.user.UserDetails;
+import people.network.entity.user.Person;
 
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Face similarity engine
@@ -26,13 +35,11 @@ public class CustomFaceSimilarityEngine<D extends DetectedFace, F extends Facial
     private FacialFeatureExtractor<F, D> extractor;
     private FacialFeatureComparator<F> comparator;
 
-    private Map<Long, F> featureCache;
-    private Map<Long, List<D>> detectedFaceCache;
+    private LoadingCache<Person, List<D>> detectedFaceCache;
+    //private LoadingCache<Person, F> featureCache;
 
     private D searchFace;
-    private Multimap<Long, D> potentialFaces;
-
-    private Map<Long, UserDetails> personMap;
+    private Multimap<Person, D> potentialFaces;
 
     private boolean cache;
 
@@ -53,10 +60,25 @@ public class CustomFaceSimilarityEngine<D extends DetectedFace, F extends Facial
         this.extractor = extractor;
         this.comparator = comparator;
 
-        featureCache = new HashMap<>(256);
-        detectedFaceCache = new HashMap<>(256);
-        potentialFaces = ArrayListMultimap.create();
-        personMap = new HashMap<>(256);
+        potentialFaces = ArrayListMultimap.create(100, 3);
+
+        detectedFaceCache = CacheBuilder.newBuilder().expireAfterAccess(10, TimeUnit.MINUTES).
+                build(new CacheLoader<Person, List<D>>() {
+                    @Override
+                    public List<D> load(Person key) {
+                        FImage fImage = key.getFImagePic();
+                        if(fImage == null) return null;
+                        return getDetectedFaces(fImage);
+                    }
+                });
+
+        /*featureCache = CacheBuilder.newBuilder().expireAfterAccess(10, TimeUnit.MINUTES).
+                build(new CacheLoader<Person, F>() {
+                    @Override
+                    public F load(Person key) {
+                        return getFaceFeature(face);
+                    }
+                });*/
     }
 
     /**
@@ -95,34 +117,27 @@ public class CustomFaceSimilarityEngine<D extends DetectedFace, F extends Facial
      *
      * @param personList potential person list
      */
-    public void setPotentialPersons(Collection<UserDetails> personList) {
-        for(UserDetails person : personList) {
-            boolean isLoaded = person.loadImage();
-            if(!isLoaded)
-                continue;
-            Long personId = person.getId();
-            FImage personFImage = person.getFImage();
-            List<D> faces = getDetectedFaces(personId, personFImage);
-            potentialFaces.putAll(personId, faces);
-            personMap.put(personId, person);
+    public void setPotentialPersons(Collection<Person> personList) {
+        for(Person person : personList) {
+            List<D> faces = getDetectedFacesCache(person);
+            if(!faces.isEmpty())
+                potentialFaces.putAll(person, faces);
         }
     }
 
-    private List<D> getDetectedFaces(Long personId, FImage personImage) {
+    private List<D> getDetectedFacesCache(Person person) {
         List<D> toRet;
         if(this.cache) {
-            toRet = this.detectedFaceCache.get(personId);
-            if(toRet == null) {
-                toRet = getDetectedFaces(personImage);
-                this.detectedFaceCache.put(personId, toRet);
-            }
+            return detectedFaceCache.getUnchecked(person);
         } else {
-            toRet = getDetectedFaces(personImage);
+            toRet = getDetectedFaces(person.getFImagePic());
         }
         return toRet;
     }
 
     private List<D> getDetectedFaces(FImage image) {
+        if(image == null)
+            return Collections.emptyList();
         List<D> facesList = this.detector.detectFaces(image);
         List<D> newFacesList = new ArrayList<>(facesList.size());
         for(D face : facesList) {
@@ -137,53 +152,45 @@ public class CustomFaceSimilarityEngine<D extends DetectedFace, F extends Facial
     /**
      * Compute the similarities between faces of search person and potential person
      */
-    public void calculateSimilarities() {
-        Collection<Entry<Long, D>> entries = potentialFaces.entries();
+    public List<Person> calculateSimilarities() {
         F searchFaceFeature = getFaceFeature(searchFace);
-
-        for(Entry<Long, D> entry : entries) {
-            Long personId = entry.getKey();
-            D face = entry.getValue();
-            F potentialFaceFeature = getFaceFeature(personId, face);
-            double d = comparator.compare(potentialFaceFeature, searchFaceFeature);
-
-            UserDetails p = personMap.get(personId);
-            if(p == null) continue;
-
-            if(comparator.isDistance()) {
-                if(p.getSimilarity() < d) p.setSimilarity(d);
-            } else {
-                if(p.getSimilarity() > d) p.setSimilarity(d);
-            }
-
+        Map<Person, Collection<D>> map = potentialFaces.asMap();
+        List<Person> resultList = new ArrayList<>();
+        for(Entry<Person, Collection<D>> entry : map.entrySet()) {
+            Person person = entry.getKey();
+            resultList.add(person);
+            Collection<D> faces = entry.getValue();
+            faces.stream().map(this::getFaceFeature).forEach(faceFeature -> {
+                double d = comparator.compare(faceFeature, searchFaceFeature);
+                if(comparator.isDistance()) {
+                    if(person.getSimilarity() < d) person.setSimilarity(d);
+                } else {
+                    if(person.getSimilarity() > d) person.setSimilarity(d);
+                }
+            });
         }
+        Collections.sort(resultList, Person::compareBySimilarity);
+        return resultList;
     }
 
-    private F getFaceFeature(Long id, D face) {
+    /*private F getFaceFeatureCache(Person person, D face) {
         F toRet;
         if (!cache) {
             toRet = getFaceFeature(face);
         } else {
-            //String combinedID = String.format("%s:%b", id);
-            toRet = this.featureCache.get(id);
+            toRet = this.featureCache.getUnchecked(person);//todo
 
             if(toRet == null){
                 toRet = getFaceFeature(face);
-                this.featureCache.put(id, toRet);
+                this.featureCache.put(person, toRet);
             }
         }
         return toRet;
-    }
+    }*/
 
     private F getFaceFeature(D face) {
         return extractor.extractFeature(face);
     }
-
-
-    public Map<Long, UserDetails> getPersonMap() {
-        return this.personMap;
-    }
-
 
     public FaceDetector<D, FImage> detector() {
         return detector;
@@ -224,10 +231,9 @@ public class CustomFaceSimilarityEngine<D extends DetectedFace, F extends Facial
     }
 
     public void resetEngine() {
-        featureCache.clear();
-        detectedFaceCache.clear();
+        //featureCache.invalidateAll();
+        detectedFaceCache.invalidateAll();
         potentialFaces.clear();
         searchFace = null;
-        personMap.clear();
     }
 }

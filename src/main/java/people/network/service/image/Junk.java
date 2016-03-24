@@ -13,7 +13,7 @@ import org.openimaj.image.processing.face.recognition.FaceRecogniser;
 import org.openimaj.image.processing.face.recognition.FaceRecognitionEngine;
 import org.openimaj.ml.annotation.ScoredAnnotation;
 import org.openimaj.util.pair.IndependentPair;
-import people.network.entity.Person;
+import people.network.entity.PersonTest;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -26,13 +26,13 @@ import java.util.List;
  **/
 public class Junk {
 
-    private FaceRecognitionEngine<KEDetectedFace, Person> _faceEngine;
+    private FaceRecognitionEngine<KEDetectedFace, PersonTest> _faceEngine;
 
     public Junk() {
         // Create face stuff
         FKEFaceDetector faceDetector = new FKEFaceDetector(new HaarCascadeDetector());
         //Aligners best for FKEFaceDetector:  AffineAligner, MeshWarpAligner, RotateScaleAligner:
-        FaceRecogniser<KEDetectedFace, Person> faceRecognizer = EigenFaceRecogniser.create(20, new RotateScaleAligner(), 1, DoubleFVComparison.CORRELATION, 0.9f);
+        FaceRecogniser<KEDetectedFace, PersonTest> faceRecognizer = EigenFaceRecogniser.create(20, new RotateScaleAligner(), 1, DoubleFVComparison.CORRELATION, 0.9f);
         _faceEngine = FaceRecognitionEngine.create(faceDetector, faceRecognizer);
     }
 
@@ -62,11 +62,11 @@ public class Junk {
             detectedFaces.add(face.getFacePatch());
 
             // Find existing person for this face
-            Person person = null;
+            PersonTest person = null;
             try {
 
-                List<IndependentPair<KEDetectedFace, ScoredAnnotation<Person>>> rfaces = _faceEngine.recogniseBest(face.getFacePatch());
-                ScoredAnnotation<Person> score = rfaces.get(0).getSecondObject();
+                List<IndependentPair<KEDetectedFace, ScoredAnnotation<PersonTest>>> rfaces = _faceEngine.recogniseBest(face.getFacePatch());
+                ScoredAnnotation<PersonTest> score = rfaces.get(0).getSecondObject();
                 if(score != null) person = score.annotation;
 
             } catch(Throwable e) {
@@ -77,7 +77,7 @@ public class Junk {
             if(person == null) {
 
                 // Create person
-                person = new Person();
+                person = new PersonTest();
                 person.setId(11L);
                 System.out.println("Identified new person: " + person.getId());
 
@@ -96,5 +96,14 @@ public class Junk {
 
         DisplayUtilities.display("Test", detectedFaces);
         //FaceSimilarityEngine a = FaceSimilarityEngine.create()
+
+        /*final ByteArrayOutputStream output = new ByteArrayOutputStream() {
+            @Override
+            public synchronized byte[] toByteArray() {
+                return this.buf;
+            }
+        };
+        ImageIO.write(image, "png", output);
+        return new ByteArrayInputStream(output.toByteArray(), 0, output.size());*/
     }
 }

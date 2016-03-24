@@ -12,7 +12,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import people.network.entity.criteria.RespSrchCrtriaObj;
 import people.network.entity.criteria.ResponseObjectCriteria;
 import people.network.entity.user.ResponseObjectUsers;
-import people.network.entity.user.UserDetails;
+import people.network.entity.user.Person;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -57,8 +57,8 @@ public class JsonService {
         return Arrays.asList(objects);
     }
 
-    public List<UserDetails> getUserList(String method, MultiValueMap<String, String> params,
-                                         int count, int from) {
+    public List<Person> getUserList(String method, MultiValueMap<String, String> params,
+                                    int count, int from) {
         if (null == params) return Collections.emptyList();
         String url = buildURL(method, params, count, from);
         System.out.println(url);
@@ -71,7 +71,7 @@ public class JsonService {
             Utils.showError();
             return Collections.emptyList();
         }
-        UserDetails[] objects = responseObject.getResponse().getItems();
+        Person[] objects = responseObject.getResponse().getItems();
         return Arrays.asList(objects);
     }
 

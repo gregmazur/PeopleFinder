@@ -1,7 +1,7 @@
 package people.network;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import people.network.service.image.ImageProcessingTest;
+import people.network.service.image.ImageProcessingTestOld;
 
 import java.io.IOException;
 
@@ -11,7 +11,7 @@ public class PeopleFinderApplication {
 
 	public static void main(String[] args) throws IOException {
 		//testing
-		ImageProcessingTest proc = ImageProcessingTest.createInstance();
+		ImageProcessingTestOld proc = ImageProcessingTestOld.createInstance();
 		proc.doImageProcessingTestSimiliarity();
 		//proc.doImageProcessingTestRecognition();
 	}

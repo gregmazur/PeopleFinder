@@ -11,5 +11,5 @@ import java.io.Serializable;
 public class Response implements Serializable{
     static final long serialVersionUID = -7627629688361524110L;
     private int count;
-    private UserDetails[] items;
+    private Person[] items;
 }

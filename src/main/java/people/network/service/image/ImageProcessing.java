@@ -10,8 +10,10 @@ import org.openimaj.image.processing.face.feature.FacialFeatureExtractor;
 import org.openimaj.image.processing.face.feature.comparison.FaceFVComparator;
 import org.openimaj.image.processing.face.feature.comparison.FacialFeatureComparator;
 import people.network.entity.SearchPerson;
-import people.network.entity.user.UserDetails;
+import people.network.entity.user.Person;
+import people.network.service.ImageService;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -20,7 +22,7 @@ import java.util.List;
  *
  * @author Yemelin A.M. <a href="mailto:artem@ibis.ua">artem@ibis.ua</a>
  **/
-public class ImageProcessing {
+public class ImageProcessing implements ImageService {
 
     private CustomFaceSimilarityEngine<KEDetectedFace, FacePatchFeature> _engine;
 
@@ -40,16 +42,17 @@ public class ImageProcessing {
         return new ImageProcessing();
     }
 
-    public List<UserDetails> getResult(SearchPerson searchPerson, List<UserDetails> potentialPersons) {
+    @Override
+    public Collection<Person> getSimilarPeople(SearchPerson searchPerson, Collection<Person> potentialPersons) {
         if(searchPerson.getImages().isEmpty())
             return Collections.emptyList();
 
         _engine.setSearchPerson(searchPerson);
         _engine.setPotentialPersons(potentialPersons);
-        _engine.calculateSimilarities();
+        List<Person> result = _engine.calculateSimilarities();
 
-        Collections.sort(potentialPersons, UserDetails::compareBySimilarity);
+        //Collections.sort(potentialPersons, Person::compareBySimilarity);
 
-        return potentialPersons;
+        return result;
     }
 }
