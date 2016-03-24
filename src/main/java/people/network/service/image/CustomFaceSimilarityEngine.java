@@ -118,11 +118,15 @@ public class CustomFaceSimilarityEngine<D extends DetectedFace, F extends Facial
      * @param personList potential person list
      */
     public void setPotentialPersons(Collection<Person> personList) {
+        System.out.println("Starting face detection");
+        int i = 1;
         for(Person person : personList) {
+            System.out.println(String.format("Proc person %d of %d.", i++, personList.size()));
             List<D> faces = getDetectedFacesCache(person);
             if(!faces.isEmpty())
                 potentialFaces.putAll(person, faces);
         }
+        System.out.println("All faces detected");
     }
 
     private List<D> getDetectedFacesCache(Person person) {
@@ -156,7 +160,9 @@ public class CustomFaceSimilarityEngine<D extends DetectedFace, F extends Facial
         F searchFaceFeature = getFaceFeature(searchFace);
         Map<Person, Collection<D>> map = potentialFaces.asMap();
         List<Person> resultList = new ArrayList<>();
+        int i = 1;
         for(Entry<Person, Collection<D>> entry : map.entrySet()) {
+            System.out.println(String.format("Proc person %d of %d.", i++, map.size()));
             Person person = entry.getKey();
             resultList.add(person);
             Collection<D> faces = entry.getValue();

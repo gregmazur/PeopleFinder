@@ -6,9 +6,8 @@ import lombok.Data;
 import org.openimaj.image.FImage;
 import org.openimaj.image.ImageUtilities;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Serializable;
+import javax.imageio.ImageIO;
+import java.io.*;
 import java.net.URL;
 
 
@@ -26,8 +25,8 @@ public class Person implements Serializable {
     @JsonProperty(value = "photo_max_orig")
     private String picURL;
 
+    private FImage fImage;
     private double similarity;
-
 
     @Override
     public String toString() {
@@ -53,16 +52,27 @@ public class Person implements Serializable {
     public FImage getFImagePic() {
         try {
             URL url = new URL(picURL);
-            return ImageUtilities.readF(url);
+            fImage = ImageUtilities.readF(url.openStream());
+            return fImage;
         } catch(Exception e) {
             e.printStackTrace();
+            System.out.println(picURL);
+            fImage = null;
             return null;
         }
     }
 
     public InputStream getPictureStream() throws IOException {
-        URL url = new URL(picURL);
-        return url.openStream();
+        if(fImage == null) return null;
+        final ByteArrayOutputStream output = new ByteArrayOutputStream() {
+            @Override
+            public synchronized byte[] toByteArray() {
+                return this.buf;
+            }
+        };
+        ImageIO.write(ImageUtilities.createBufferedImage(fImage), "jpg", output);
+        fImage = null;
+        return new ByteArrayInputStream(output.toByteArray(), 0, output.size());
     }
 
     public static int compareBySimilarity(Person u1, Person u2) {

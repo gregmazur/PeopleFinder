@@ -34,13 +34,17 @@ public class PeopleFoundView extends VerticalLayout implements View {
         List<Person> potentialPersons = mainPage.getService().getUserList(Utils.GET_USERS_METHOD, map, 1000, 0);
         ImageService imageService = ImageProcessing.createInstance();
         Collection<Person> result = imageService.getSimilarPeople(mainPage.getSearchPerson(), potentialPersons);
+        int i = 1;
         for (Object o : result){
             try {
                 Person person = (Person) o;
-                HorizontalLayout layout = new HorizontalLayout(new Label(person.toString()));
-                StreamResource resource = new StreamResource(new ImageStreamResource(person.getPictureStream()), o.toString());
-                layout.setIcon(resource);
-                addComponents(layout);
+                System.out.println(String.format("Proc person %d of %d.", i++, result.size()));
+                if(person.getPictureStream() != null) {
+                    HorizontalLayout layout = new HorizontalLayout(new Label(person.toString()));
+                    StreamResource resource = new StreamResource(new ImageStreamResource(person.getPictureStream()), o.toString());
+                    layout.setIcon(resource);
+                    addComponents(layout);
+                }
             } catch(IOException e) {
                 e.printStackTrace();
             }
