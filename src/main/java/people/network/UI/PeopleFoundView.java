@@ -8,7 +8,7 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
 import org.springframework.util.MultiValueMap;
 import people.network.entity.user.UserDetails;
-import people.network.rest.Utils;
+import people.network.service.rest.Utils;
 
 import java.io.IOException;
 import java.util.List;

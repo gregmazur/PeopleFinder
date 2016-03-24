@@ -1,4 +1,4 @@
-package people.network.rest;
+package people.network.service.rest;
 
 import com.vaadin.server.Page;
 import com.vaadin.ui.ComboBox;

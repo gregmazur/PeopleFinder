@@ -1,4 +1,4 @@
-package people.network.image;
+package people.network.service.image;
 
 import org.openimaj.feature.DoubleFVComparison;
 import org.openimaj.image.DisplayUtilities;

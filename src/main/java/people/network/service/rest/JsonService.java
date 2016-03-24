@@ -1,11 +1,10 @@
-package people.network.rest;
+package people.network.service.rest;
 
 
 import com.vaadin.spring.annotation.SpringComponent;
 import lombok.Data;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.stereotype.Service;
-import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;

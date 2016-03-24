@@ -1,7 +1,7 @@
 package people.network;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import people.network.image.ImageProcessingTest;
+import people.network.service.image.ImageProcessingTest;
 
 import java.io.IOException;
 

@@ -8,7 +8,7 @@ import com.vaadin.ui.UI;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import people.network.entity.SearchPerson;
-import people.network.rest.JsonService;
+import people.network.service.rest.JsonService;
 
 import java.util.Locale;
 
@@ -39,11 +39,5 @@ public class MainPage extends UI {
         navigator.addView(ENTERING_FORM, new FindingForm(this));
         navigator.addView(PEOPLE_FOUND, new PeopleFoundView(this));
     }
-
-
-//            "5343222",
-//            "th0q54SVYPLxl53EoO7c",
-//            "https://api.vk.com/method");
-
 
 }

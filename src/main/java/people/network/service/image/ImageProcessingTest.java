@@ -1,4 +1,4 @@
-package people.network.image;
+package people.network.service.image;
 
 
 import org.jetbrains.annotations.NotNull;
@@ -110,7 +110,7 @@ public class ImageProcessingTest {
         //_faceSimilarityEngine.setSearchPerson(searchPerson);
         //_faceSimilarityEngine.setPotentialPersons(potentialPersonList);
 
-        System.out.println(_faceSimilarityEngine.getSimilarityDictionary());
+       // System.out.println(_faceSimilarityEngine.getSimilarityDictionary());
 
         /*List<FImage> list = new ArrayList<>();
         list.add(testImage);

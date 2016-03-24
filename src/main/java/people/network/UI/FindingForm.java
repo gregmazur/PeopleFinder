@@ -7,7 +7,7 @@ import com.vaadin.ui.*;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import people.network.entity.criteria.RespSrchCrtriaObj;
-import people.network.rest.Utils;
+import people.network.service.rest.Utils;
 
 import java.io.Serializable;
 import java.time.LocalDate;

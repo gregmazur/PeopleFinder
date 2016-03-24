@@ -1,4 +1,4 @@
-package people.network.image;
+package people.network.service.image;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;

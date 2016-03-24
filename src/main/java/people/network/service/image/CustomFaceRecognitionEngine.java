@@ -1,4 +1,4 @@
-package people.network.image;
+package people.network.service.image;
 
 import org.apache.log4j.Logger;
 import org.openimaj.data.dataset.GroupedDataset;
