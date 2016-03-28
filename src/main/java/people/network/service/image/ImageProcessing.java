@@ -46,11 +46,12 @@ public class ImageProcessing implements ImageService {
     public Collection<Person> getSimilarPeople(SearchPerson searchPerson, Collection<Person> potentialPersons) {
         if(searchPerson.getImages().isEmpty())
             return Collections.emptyList();
+        TestMemory.test();
 
         _engine.setSearchPerson(searchPerson);
         _engine.setPotentialPersons(potentialPersons);
         List<Person> result = _engine.calculateSimilarities();
-
+        TestMemory.test();
         //Collections.sort(potentialPersons, Person::compareBySimilarity);
 
         return result;

@@ -34,7 +34,7 @@ public class JsonService {
 
     /**
      * @param method
-     * @param params 3 obligatory parameters will be added
+     * @param params 5 obligatory parameters will be added
      * @param count  amount of result entries you want to receive
      * @param from   number of from which you need to get the list
      * @return
@@ -60,6 +60,8 @@ public class JsonService {
     public List<Person> getUserList(String method, MultiValueMap<String, String> params,
                                     int count, int from) {
         if (null == params) return Collections.emptyList();
+        params.add("fields", "photo_max_orig");
+        params.add("has_photo", "1");
         String url = buildURL(method, params, count, from);
         System.out.println(url);
 

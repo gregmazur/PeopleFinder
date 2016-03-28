@@ -4,6 +4,7 @@ import com.vaadin.data.Property;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.*;
+import com.vaadin.ui.themes.ValoTheme;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.vaadin.easyuploads.UploadField;
@@ -71,20 +72,37 @@ public class FindingForm extends VerticalLayout implements Serializable, View {
     }
 
     private void init() {
-        setResponsive(true);
+        addComponent(new Label());
+        Label header = new Label("Please enter some data about the person you looking for.");
+        addComponent(header);
+        header.setSizeUndefined();
+        setComponentAlignment(header, Alignment.MIDDLE_CENTER);
+        header.addStyleName(ValoTheme.LABEL_HUGE);
+        addComponent(new Label());
+
         String token = getAccessToken();
         if (null != token) mainPage.getService().setAccessToken(token);
         else openSignInWindow();
+
+        setResponsive(true);
         Collection<RespSrchCrtriaObj> countries = getCountriesList();
-        name.setWidth(50, Unit.PERCENTAGE);
         addComponent(name);
+        name.setWidth(50, Unit.PERCENTAGE);
         setComponentAlignment(name, Alignment.MIDDLE_CENTER);
+
+        String textMessage = "If there is no needed option input first letters of what you looking and try again";
+        Label message = new Label(textMessage);
+        message.addStyleName(ValoTheme.LABEL_COLORED);
+        addComponent(message);
+        message.setWidth(50, Unit.PERCENTAGE);
+        setComponentAlignment(message, Alignment.MIDDLE_CENTER);
 
         HorizontalLayout placesInfo = new HorizontalLayout();
         placesInfo.addComponent(currentInfo(countries));
         placesInfo.addComponent(universityInfo(countries));
         placesInfo.addComponent(homeInfo(countries));
         addComponent(placesInfo);
+        placesInfo.setWidth(50, Unit.PERCENTAGE);
         setComponentAlignment(placesInfo, Alignment.MIDDLE_CENTER);
 
         ComboBox sex = getSex();
@@ -99,12 +117,19 @@ public class FindingForm extends VerticalLayout implements Serializable, View {
 
         HorizontalLayout ageLayout = getAgeLayout();
         addComponents(ageLayout);
+        ageLayout.setWidth(50, Unit.PERCENTAGE);
         setComponentAlignment(ageLayout, Alignment.MIDDLE_CENTER);
 
         HorizontalLayout birthDate = getBirthDate();
         addComponents(birthDate);
+        birthDate.setWidth(50, Unit.PERCENTAGE);
         setComponentAlignment(birthDate, Alignment.MIDDLE_CENTER);
 
+        Label message2 = new Label(textMessage);
+        message2.addStyleName(ValoTheme.LABEL_COLORED);
+        addComponent(message2);
+        message2.setWidth(50, Unit.PERCENTAGE);
+        setComponentAlignment(message2, Alignment.MIDDLE_CENTER);
         ComboBox group = getGroup();
         addComponents(group);
         group.setWidth(50, Unit.PERCENTAGE);
@@ -117,19 +142,17 @@ public class FindingForm extends VerticalLayout implements Serializable, View {
 
         Button submit = new Button("Submit", event -> {
             String name = this.name.getValue();
-            if (null != name) putParam("q", name);
+            if (null != name) putParam("q", name.trim());
             mainPage.getNavigator().navigateTo(MainPage.PEOPLE_FOUND);
         });
         addComponent(submit);
         setComponentAlignment(submit, Alignment.MIDDLE_CENTER);
-        result = new TextArea();
-        addComponent(result);
-        setComponentAlignment(result, Alignment.MIDDLE_CENTER);
     }
 
     private String getAccessToken() {
         String uri = mainPage.getPage().getUriFragment();
-        if (null != uri && uri.indexOf("access_token") > -1) return uri.substring(uri.indexOf("=") + 1, uri.indexOf("&"));
+        if (null != uri && uri.contains("access_token"))
+            return uri.substring(uri.indexOf("=") + 1, uri.indexOf("&"));
         return null;
     }
 
@@ -162,6 +185,7 @@ public class FindingForm extends VerticalLayout implements Serializable, View {
         school.setVisible(false);
         school.setImmediate(true);
         layout.addComponent(school);
+        school.setWidth(100, Unit.PERCENTAGE);
         homeCity.addValueChangeListener(event1 -> {
             RespSrchCrtriaObj o = (RespSrchCrtriaObj) homeCity.getValue();
             school.removeAllItems();
@@ -204,6 +228,7 @@ public class FindingForm extends VerticalLayout implements Serializable, View {
         university.setVisible(false);
         university.setImmediate(true);
         layout.addComponent(university);
+        university.setWidth(100, Unit.PERCENTAGE);
         universityCity.addValueChangeListener(event1 -> {
             RespSrchCrtriaObj oCity = (RespSrchCrtriaObj) universityCity.getValue();
             RespSrchCrtriaObj oCountry = (RespSrchCrtriaObj) universityCountry.getValue();
@@ -240,11 +265,12 @@ public class FindingForm extends VerticalLayout implements Serializable, View {
             if (null != o) putParam("university_faculty", String.valueOf(o.getId()));
         });
         layout.addComponents(faculty);
+        faculty.setWidth(100, Unit.PERCENTAGE);
 
         return layout;
     }
 
-    private ComboBox getSex(){
+    private ComboBox getSex() {
         ComboBox sex = new ComboBox("Sex");
         sex.addItem(Sex.FEMALE);
         sex.addItem(Sex.MALE);
@@ -255,7 +281,7 @@ public class FindingForm extends VerticalLayout implements Serializable, View {
         return sex;
     }
 
-    private ComboBox getStatus(){
+    private ComboBox getStatus() {
         ComboBox status = new ComboBox("Status");
         status.addItem(Status.SEARCHING);
         status.addItem(Status.COMPLICATED);
@@ -271,7 +297,7 @@ public class FindingForm extends VerticalLayout implements Serializable, View {
         return status;
     }
 
-    private ComboBox getGroup(){
+    private ComboBox getGroup() {
         ComboBox group = new ComboBox("Group");
         group.setImmediate(true);
         group.setNewItemsAllowed(true);
@@ -303,6 +329,7 @@ public class FindingForm extends VerticalLayout implements Serializable, View {
             regionCB.setValue(null);
         });
         layout.addComponent(countryCB);
+        countryCB.setWidth(100, Unit.PERCENTAGE);
 
         regionCB.setVisible(false);
         regionCB.setImmediate(true);
@@ -317,6 +344,7 @@ public class FindingForm extends VerticalLayout implements Serializable, View {
             cityCB.setValue(null);
         });
         layout.addComponents(regionCB);
+        regionCB.setWidth(100, Unit.PERCENTAGE);
 
         cityCB.setImmediate(true);
         cityCB.setNewItemsAllowed(true);
@@ -329,6 +357,7 @@ public class FindingForm extends VerticalLayout implements Serializable, View {
         });
         cityCB.setVisible(false);
         layout.addComponent(cityCB);
+        cityCB.setWidth(100, Unit.PERCENTAGE);
         return layout;
     }
 
@@ -376,9 +405,11 @@ public class FindingForm extends VerticalLayout implements Serializable, View {
         };
         year.addValueChangeListener(listener);
         layout.addComponents(year);
+        year.setWidth(100, Unit.PERCENTAGE);
         month.setImmediate(true);
         month.addValueChangeListener(listener);
         layout.addComponents(month);
+        month.setWidth(100, Unit.PERCENTAGE);
         for (int i = 1; i <= 12; i++) {
             month.addItem(i);
         }
@@ -387,6 +418,7 @@ public class FindingForm extends VerticalLayout implements Serializable, View {
             if (null != day.getValue()) putParam("birth_day", String.valueOf(day.getValue()));
         });
         layout.addComponents(day);
+        day.setWidth(100, Unit.PERCENTAGE);
         return layout;
     }
 
@@ -421,10 +453,12 @@ public class FindingForm extends VerticalLayout implements Serializable, View {
         });
         ageLayout.addComponent(ageFrom);
         ageLayout.addComponent(ageTo);
+        ageFrom.setWidth(100, Unit.PERCENTAGE);
+        ageTo.setWidth(100, Unit.PERCENTAGE);
         return ageLayout;
     }
 
-    private UploadField getPictureUploadField(){
+    private UploadField getPictureUploadField() {
         UploadField uploadField = new UploadField();
         uploadField.setFieldType(UploadField.FieldType.BYTE_ARRAY);
         uploadField.addListener((Listener) event -> {
