@@ -1,4 +1,4 @@
-package people.network.UI;
+package people.network.UI.views;
 
 import com.vaadin.data.Property;
 import com.vaadin.navigator.View;
@@ -8,6 +8,7 @@ import com.vaadin.ui.themes.ValoTheme;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.vaadin.easyuploads.UploadField;
+import people.network.UI.MainPage;
 import people.network.entity.criteria.RespSrchCrtriaObj;
 import people.network.service.rest.Utils;
 
@@ -520,9 +521,7 @@ public class FindingForm extends VerticalLayout implements Serializable, View {
     }
 
     private void putParam(String key, String value) {
-        LinkedList<String> list = new LinkedList<>();
-        list.add(value);
-        mainPage.getSearchPerson().getUserSearchParams().put(key, list);
+        Utils.putParam(mainPage.getSearchPerson().getUserSearchParams(),key,value);
     }
 
     private void putParam(String key, long value) {

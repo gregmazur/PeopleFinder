@@ -5,20 +5,25 @@ import com.vaadin.server.StreamResource;
 import java.io.InputStream;
 
 /**
- *
- *
  * @author Mazur G <a href="mailto:mazur@ibis.ua">mazur@ibis.ua</a>
- **/
-public class ImageStreamResource implements StreamResource.StreamSource {
+ */
+public class ImageStreamResource extends StreamResource {
 
-    private InputStream stream;
 
-    public ImageStreamResource(InputStream stream) {
-        this.stream = stream;
+    public ImageStreamResource(InputStream stream, String name) {
+        super(new ImageStreamSource(stream), name);
     }
 
-    @Override
-    public InputStream getStream() {
-        return stream;
+    private static class ImageStreamSource implements StreamSource {
+        private InputStream stream;
+
+        public ImageStreamSource(InputStream stream) {
+            this.stream = stream;
+        }
+
+        @Override
+        public InputStream getStream() {
+            return stream;
+        }
     }
 }

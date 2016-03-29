@@ -43,7 +43,7 @@ public class ImageProcessing implements ImageService {
     }
 
     @Override
-    public Collection<Person> getSimilarPeople(SearchPerson searchPerson, Collection<Person> potentialPersons) {
+    public List<Person> getSimilarPeople(SearchPerson searchPerson, Collection<Person> potentialPersons) {
         if(searchPerson.getImages().isEmpty())
             return Collections.emptyList();
         TestMemory.test();

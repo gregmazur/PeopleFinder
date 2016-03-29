@@ -8,7 +8,7 @@ import java.net.Proxy;
  *
  * @author Yemelin A.M. <a href="mailto:artem@ibis.ua">artem@ibis.ua</a>
  **/
-public enum Utils {
+public enum ProxyUtils {
 
     INSTANCE;
 

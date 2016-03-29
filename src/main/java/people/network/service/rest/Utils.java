@@ -3,8 +3,10 @@ package people.network.service.rest;
 import com.vaadin.server.Page;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Notification;
+import org.springframework.util.MultiValueMap;
 
 import java.util.Collection;
+import java.util.LinkedList;
 
 /**
  * @author Mazur G <a href="mailto:mazur@ibis.ua">mazur@ibis.ua</a>
@@ -33,5 +35,11 @@ public class Utils {
                 "<br/>Couldn`t connect to VK",
                 Notification.Type.WARNING_MESSAGE, true)
                 .show(Page.getCurrent());
+    }
+
+    public static void putParam(MultiValueMap<String,String> map,String key, String value) {
+        LinkedList<String> list = new LinkedList<>();
+        list.add(value);
+        map.put(key, list);
     }
 }

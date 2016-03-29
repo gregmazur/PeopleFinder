@@ -7,6 +7,8 @@ import com.vaadin.spring.annotation.SpringUI;
 import com.vaadin.ui.UI;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
+import people.network.UI.views.FindingForm;
+import people.network.UI.views.PeopleFoundView;
 import people.network.entity.SearchPerson;
 import people.network.service.rest.JsonService;
 
