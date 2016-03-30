@@ -54,7 +54,8 @@ public class Person implements Serializable {
         try {
             System.out.println(picURL);
             URL url = new URL(picURL);
-            fImage = ImageUtilities.readF(url.openConnection(ProxyUtils.getProxy()).getInputStream());
+//            fImage = ImageUtilities.readF(url.openConnection(ProxyUtils.getProxy()).getInputStream());
+            fImage = ImageUtilities.readF(url);
             return fImage;
         } catch(Exception e) {
             e.printStackTrace();
