@@ -32,6 +32,7 @@ public class PeopleFoundView extends VerticalLayout implements View, LazyCompone
     private LazyVerticalLayout lazyLayout;
     private PeopleContainer peopleContainer;
     private ImageService imageService;
+    private Panel panel;
     private int indexCounter = 0;
     private int maxNumberOfPpl;
 
@@ -60,6 +61,10 @@ public class PeopleFoundView extends VerticalLayout implements View, LazyCompone
     }
 
     private void init() {
+        panel = new Panel();
+        panel.setSizeFull();
+        addComponent(panel);
+        setExpandRatio(panel, 1.0f);
         lazyLayout = new LazyVerticalLayout();
 
         // Parent can be also defined manually, but here we trust the automatic resolving
@@ -69,12 +74,13 @@ public class PeopleFoundView extends VerticalLayout implements View, LazyCompone
         lazyLayout.setStyleName("demoContentLayout");
         lazyLayout.setSpacing(true);
         lazyLayout.setMargin(true);
-        addComponent(lazyLayout);
+        panel.setContent(lazyLayout);
     }
 
     @Override
     public void onLazyComponentRequest(LazyComponentRequestEvent event) {
-        new DelayedAddRunnable(event).run();
+        Thread thread = new Thread(new DelayedAddRunnable(event));
+        thread.run();
     }
 
     protected void addNewRow(ComponentContainer container) throws IOException {
