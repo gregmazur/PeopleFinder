@@ -128,7 +128,7 @@ public class PeopleFoundView extends VerticalLayout implements View, LazyCompone
     protected void lazyLoad(LazyComponentRequestEvent event) throws IOException {
 
         // Check how many to add
-        int load = 10;
+        int load = 500;
         if (indexCounter + load >= maxNumberOfPpl) {
             load = maxNumberOfPpl - indexCounter;
         }

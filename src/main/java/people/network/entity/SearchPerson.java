@@ -39,7 +39,10 @@ import java.util.List;
 public class SearchPerson {
 
     private Collection<InputStream> images = new ArrayList<>();
-    private MultiValueMap<String, String> userSearchParams = new LinkedMultiValueMap<>(35);
+    private MultiValueMap<String, String> userSearchParams = new LinkedMultiValueMap<String, String>(35) {{
+        //add("country", "2");
+        //add("city", "292");
+    }};
 
     public SearchPerson() {}
 
@@ -49,6 +52,7 @@ public class SearchPerson {
             try {
                 FImage fImage = ImageUtilities.readF(inStream);
                 fImages.add(fImage);
+                break;
             } catch(IOException e) {
                 e.printStackTrace();
             }

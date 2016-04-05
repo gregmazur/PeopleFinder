@@ -12,6 +12,7 @@ import org.openimaj.image.processing.face.feature.comparison.FacialFeatureCompar
 import people.network.entity.SearchPerson;
 import people.network.entity.user.Person;
 import people.network.service.ImageService;
+import people.network.service.utils.MemoryUtils;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -27,13 +28,13 @@ public class ImageProcessing implements ImageService {
     private CustomFaceSimilarityEngine<KEDetectedFace, FacePatchFeature> _engine;
 
     private ImageProcessing() {
-        FKEFaceDetector faceDetector = new FKEFaceDetector(HaarCascadeDetector.BuiltInCascade.frontalface_alt.load());
+        //FaceDetector<KEDetectedFace, FImage> faceDetector = createFKEFaceDetector();
         FacialFeatureExtractor<FacePatchFeature, KEDetectedFace> featureExtractor = new FaceImageFeature.Extractor();
         //FacialFeatureExtractor<FacePatchFeature, KEDetectedFace> featureExtractor = new FacePatchFeature.Extractor();
         //FacialFeatureExtractor<FacePatchFeature, KEDetectedFace> featureExtractor = new LocalLBPHistogram.Extractor(); // ScalingAligner AffineAligner RotateScaleAligner
         FacialFeatureComparator<FacePatchFeature> featureComparator = new FaceFVComparator<>(FloatFVComparison.EUCLIDEAN);
 
-        _engine = CustomFaceSimilarityEngine.create(faceDetector, featureExtractor, featureComparator);
+        _engine = CustomFaceSimilarityEngine.create(ImageProcessing::createFKEFaceDetector, featureExtractor, featureComparator);
         //_faceEngine.setFaceConfidence(25.0f);
         //_faceSimilarity.setUseCache(true);
     }
@@ -46,14 +47,26 @@ public class ImageProcessing implements ImageService {
     public List<Person> getSimilarPeople(SearchPerson searchPerson, Collection<Person> potentialPersons) {
         if(searchPerson.getImages().isEmpty())
             return Collections.emptyList();
-        TestMemory.test();
 
-        _engine.setSearchPerson(searchPerson);
+        long timeStart = System.currentTimeMillis();
+        MemoryUtils.printMemoryStat();
+
+        boolean isDetected = _engine.setSearchPerson(searchPerson);
+        if(!isDetected)
+            return Collections.emptyList();
         _engine.setPotentialPersons(potentialPersons);
         List<Person> result = _engine.calculateSimilarities();
-        TestMemory.test();
-        //Collections.sort(potentialPersons, Person::compareBySimilarity);
+
+        MemoryUtils.printMemoryStat();
+        long timeEnd = System.currentTimeMillis();
+        long timeCount = timeEnd - timeStart;
+        System.out.println(String.format("Time: %d ms", timeCount));
+        _engine.resetEngine();
 
         return result;
+    }
+
+    public static FKEFaceDetector createFKEFaceDetector() {
+        return new FKEFaceDetector(HaarCascadeDetector.BuiltInCascade.frontalface_alt.load());
     }
 }

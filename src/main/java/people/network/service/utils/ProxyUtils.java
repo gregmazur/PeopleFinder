@@ -1,4 +1,4 @@
-package people.network.service;
+package people.network.service.utils;
 
 import java.net.InetSocketAddress;
 import java.net.Proxy;

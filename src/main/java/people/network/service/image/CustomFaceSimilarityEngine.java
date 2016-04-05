@@ -17,12 +17,10 @@ import people.network.entity.user.Person;
 
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.stream.Collector;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Face similarity engine
@@ -31,54 +29,50 @@ import java.util.stream.Stream;
  **/
 public class CustomFaceSimilarityEngine<D extends DetectedFace, F extends FacialFeature> {
 
-    private FaceDetector<D, FImage> detector;
     private FacialFeatureExtractor<F, D> extractor;
     private FacialFeatureComparator<F> comparator;
 
+    private ThreadLocal<FaceDetector<D, FImage>> detector;
     private LoadingCache<Person, List<D>> detectedFaceCache;
-    //private LoadingCache<Person, F> featureCache;
+
+    private ExecutorService executor;
 
     private D searchFace;
     private Multimap<Person, D> potentialFaces;
 
-    private boolean cache;
+    private volatile boolean cache;
 
-    private float faceConfidence = 10.0f;
+    private volatile float faceConfidence = 10.0f;
 
     /**
      * Construct a new {@link CustomFaceSimilarityEngine} from the
      * specified detector, extractor and comparator.
      *
-     * @param detector The face detector
+     * @param detectorSupplier The face detector supplier
      * @param extractor The feature extractor
      * @param comparator The feature comparator
      */
-    private CustomFaceSimilarityEngine(FaceDetector<D, FImage> detector,
+    private CustomFaceSimilarityEngine(Supplier<FaceDetector<D, FImage>> detectorSupplier,
                                       FacialFeatureExtractor<F, D> extractor,
                                       FacialFeatureComparator<F> comparator) {
-        this.detector = detector;
+        this.detector = ThreadLocal.withInitial(detectorSupplier);
         this.extractor = extractor;
         this.comparator = comparator;
 
-        potentialFaces = ArrayListMultimap.create(100, 3);
+        potentialFaces = ArrayListMultimap.create(500, 3);
 
         detectedFaceCache = CacheBuilder.newBuilder().expireAfterAccess(10, TimeUnit.MINUTES).
                 build(new CacheLoader<Person, List<D>>() {
                     @Override
                     public List<D> load(Person key) {
-                        FImage fImage = key.getFImagePic();
+                        FImage fImage = key.getFImage();
                         if(fImage == null) return null;
                         return getDetectedFaces(fImage);
                     }
                 });
 
-        /*featureCache = CacheBuilder.newBuilder().expireAfterAccess(10, TimeUnit.MINUTES).
-                build(new CacheLoader<Person, F>() {
-                    @Override
-                    public F load(Person key) {
-                        return getFaceFeature(face);
-                    }
-                });*/
+        int n_thds = (int) (1.5f * Runtime.getRuntime().availableProcessors());
+        executor = Executors.newFixedThreadPool(n_thds);
     }
 
     /**
@@ -88,14 +82,14 @@ public class CustomFaceSimilarityEngine<D extends DetectedFace, F extends Facial
      * @param <D> The type of {@link DetectedFace}
      * @param <F> the type of {@link FacialFeature}
      *
-     * @param detector The face detector
+     * @param detectorSupplier The face detector supplier
      * @param extractor The feature extractor
      * @param comparator The feature comparator
      * @return the new {@link CustomFaceSimilarityEngine}
      */
     public static <D extends DetectedFace, F extends FacialFeature> CustomFaceSimilarityEngine<D, F> create(
-            FaceDetector<D, FImage> detector, FacialFeatureExtractor<F, D> extractor, FacialFeatureComparator<F> comparator) {
-        return new CustomFaceSimilarityEngine<>(detector, extractor, comparator);
+            Supplier<FaceDetector<D, FImage>> detectorSupplier, FacialFeatureExtractor<F, D> extractor, FacialFeatureComparator<F> comparator) {
+        return new CustomFaceSimilarityEngine<>(detectorSupplier, extractor, comparator);
     }
 
     /**
@@ -103,13 +97,22 @@ public class CustomFaceSimilarityEngine<D extends DetectedFace, F extends Facial
      *
      * @param searchPerson search person
      */
-    public void setSearchPerson(SearchPerson searchPerson) {
+    public boolean setSearchPerson(SearchPerson searchPerson) {
+        System.out.println("Starting search face detection...");
         List<FImage> fImages = searchPerson.getFImages();
-        List<D> faces = new ArrayList<>();
-        for(FImage fImage : fImages) {
-            faces.addAll(getDetectedFaces(fImage));
+        if(fImages.isEmpty()) {
+            System.out.println("Search person images not set!");
+            return false;
+        }
+        List<D> faces = fImages.stream().flatMap(fImage -> getDetectedFaces(fImage).stream()).collect(Collectors.toList());
+        if(faces.isEmpty()) {
+            System.out.println("Search face not detected!");
+            return false;
         }
         this.searchFace = DatasetFaceDetector.getBiggest(faces);
+        //DisplayUtilities.display("TestImage", searchFace.getFacePatch());
+        System.out.println("Search face detected");
+        return true;
     }
 
     /**
@@ -118,39 +121,44 @@ public class CustomFaceSimilarityEngine<D extends DetectedFace, F extends Facial
      * @param personList potential person list
      */
     public void setPotentialPersons(Collection<Person> personList) {
-        System.out.println("Starting face detection");
-        int i = 1;
+        System.out.println("Starting potential face detection...");
+        AtomicInteger aInt = new AtomicInteger(0);
+        int tasksSize = personList.size();
+        CountDownLatch latch = new CountDownLatch(tasksSize);
         for(Person person : personList) {
-            System.out.println(String.format("Proc person %d of %d.", i++, personList.size()));
-            List<D> faces = getDetectedFacesCache(person);
-            if(!faces.isEmpty())
-                potentialFaces.putAll(person, faces);
+            executor.execute(() -> {
+                try {
+                    System.out.println(String.format("Processing person %d of %d. PicURL=%s",
+                            aInt.incrementAndGet(), tasksSize, person.getPicURL()));
+                    List<D> faces = getDetectedFacesCache(person);
+                    if(!faces.isEmpty()) potentialFaces.putAll(person, faces);
+                } finally {
+                    latch.countDown();
+                }
+            });
         }
-        System.out.println("All faces detected");
+        try {
+            latch.await(1, TimeUnit.MINUTES);
+        } catch(InterruptedException e) {
+            e.printStackTrace();
+        }
+        System.out.println("All potential faces detected");
     }
 
     private List<D> getDetectedFacesCache(Person person) {
-        List<D> toRet;
-        if(this.cache) {
-            return detectedFaceCache.getUnchecked(person);
-        } else {
-            toRet = getDetectedFaces(person.getFImagePic());
-        }
-        return toRet;
+        return this.cache ? detectedFaceCache.getUnchecked(person) : getDetectedFaces(person.getFImage());
     }
 
     private List<D> getDetectedFaces(FImage image) {
         if(image == null)
             return Collections.emptyList();
-        List<D> facesList = this.detector.detectFaces(image);
-        List<D> newFacesList = new ArrayList<>(facesList.size());
-        for(D face : facesList) {
-            if(face.getConfidence() > faceConfidence) {
-                //DisplayUtilities.display("FaceConfidence=" + face.getConfidence(), face.getFacePatch());
-                newFacesList.add(face);
-            }
-        }
-        return newFacesList;
+        FaceDetector<D, FImage> detector = this.detector.get();
+        List<D> facesList = detector.detectFaces(image);
+        return facesList.stream().filter(this::isFaceConfident).collect(Collectors.toList());
+    }
+
+    private boolean isFaceConfident(D face) {
+        return face.getConfidence() > faceConfidence;
     }
 
     /**
@@ -160,9 +168,7 @@ public class CustomFaceSimilarityEngine<D extends DetectedFace, F extends Facial
         F searchFaceFeature = getFaceFeature(searchFace);
         Map<Person, Collection<D>> map = potentialFaces.asMap();
         List<Person> resultList = new ArrayList<>();
-        int i = 1;
         for(Entry<Person, Collection<D>> entry : map.entrySet()) {
-            System.out.println(String.format("Proc person %d of %d.", i++, map.size()));
             Person person = entry.getKey();
             resultList.add(person);
             Collection<D> faces = entry.getValue();
@@ -179,27 +185,13 @@ public class CustomFaceSimilarityEngine<D extends DetectedFace, F extends Facial
         return resultList;
     }
 
-    /*private F getFaceFeatureCache(Person person, D face) {
-        F toRet;
-        if (!cache) {
-            toRet = getFaceFeature(face);
-        } else {
-            toRet = this.featureCache.getUnchecked(person);//todo
-
-            if(toRet == null){
-                toRet = getFaceFeature(face);
-                this.featureCache.put(person, toRet);
-            }
-        }
-        return toRet;
-    }*/
 
     private F getFaceFeature(D face) {
         return extractor.extractFeature(face);
     }
 
     public FaceDetector<D, FImage> detector() {
-        return detector;
+        return detector.get();
     }
 
     public FacialFeatureExtractor<F, D> extractor() {
@@ -210,20 +202,10 @@ public class CustomFaceSimilarityEngine<D extends DetectedFace, F extends Facial
         return comparator;
     }
 
-    /**
-     * Set whether detections should be cached
-     *
-     * @param cache enable cache if true
-     */
     public void setUseCache(boolean cache) {
         this.cache = cache;
     }
 
-    /**
-     * Get whether detections use cache
-     *
-     * @return whether detections use cache
-     */
     public boolean getUseCache() {
         return this.cache;
     }
@@ -237,9 +219,9 @@ public class CustomFaceSimilarityEngine<D extends DetectedFace, F extends Facial
     }
 
     public void resetEngine() {
-        //featureCache.invalidateAll();
         detectedFaceCache.invalidateAll();
         potentialFaces.clear();
         searchFace = null;
+        detector = new ThreadLocal<>();
     }
 }

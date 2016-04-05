@@ -5,7 +5,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import org.openimaj.image.FImage;
 import org.openimaj.image.ImageUtilities;
-import people.network.service.ProxyUtils;
+import org.openimaj.image.MBFImage;
+import org.openimaj.image.colour.Transforms;
+import people.network.service.utils.ProxyUtils;
 
 import javax.imageio.ImageIO;
 import java.io.*;
@@ -26,7 +28,7 @@ public class Person implements Serializable {
     @JsonProperty(value = "photo_max_orig")
     private String picURL;
 
-    private FImage fImage;
+    private MBFImage tmpImage;
     private double similarity;
 
     @Override
@@ -50,34 +52,35 @@ public class Person implements Serializable {
         return (int) (id ^ (id >>> 32));
     }
 
-    public FImage getFImagePic() {
+    public FImage getFImage() {
+        FImage fImage = null;
         try {
-            System.out.println(picURL);
             URL url = new URL(picURL);
-//            fImage = ImageUtilities.readF(url.openConnection(ProxyUtils.getProxy()).getInputStream());
-            fImage = ImageUtilities.readF(url);
-            return fImage;
+            //InputStream stream = url.openConnection(ProxyUtils.getProxy()).getInputStream();
+            tmpImage = ImageUtilities.readMBF(url);
+            fImage = Transforms.calculateIntensity(tmpImage);
         } catch(Exception e) {
             e.printStackTrace();
-            fImage = null;
-            return null;
+            tmpImage = null;
         }
+        return fImage;
     }
 
     public InputStream getPictureStream() throws IOException {
-        if(fImage == null) return null;
+        if(tmpImage == null) return null;
         final ByteArrayOutputStream output = new ByteArrayOutputStream() {
             @Override
             public synchronized byte[] toByteArray() {
                 return this.buf;
             }
         };
-        ImageIO.write(ImageUtilities.createBufferedImage(fImage), "jpg", output);
-        fImage = null;
+        //ImageIO.write(ImageUtilities.createBufferedImage(tmpImage), "jpg", output);
+        ImageUtilities.write(tmpImage, "jpg", output);
+        tmpImage = null;
         return new ByteArrayInputStream(output.toByteArray(), 0, output.size());
     }
 
-    public static int compareBySimilarity(Person u1, Person u2) {
-        return Double.compare(u1.getSimilarity(), u2.getSimilarity());
+    public static int compareBySimilarity(Person p1, Person p2) {
+        return Double.compare(p1.getSimilarity(), p2.getSimilarity());
     }
 }
