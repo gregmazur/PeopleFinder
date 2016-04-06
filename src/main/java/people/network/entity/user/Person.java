@@ -9,7 +9,6 @@ import org.openimaj.image.MBFImage;
 import org.openimaj.image.colour.Transforms;
 import people.network.service.utils.ProxyUtils;
 
-import javax.imageio.ImageIO;
 import java.io.*;
 import java.net.URL;
 
@@ -56,8 +55,8 @@ public class Person implements Serializable {
         FImage fImage = null;
         try {
             URL url = new URL(picURL);
-            //InputStream stream = url.openConnection(ProxyUtils.getProxy()).getInputStream();
-            tmpImage = ImageUtilities.readMBF(url);
+            InputStream stream = url.openConnection(ProxyUtils.getProxy()).getInputStream();
+            tmpImage = ImageUtilities.readMBF(stream);
             fImage = Transforms.calculateIntensity(tmpImage);
         } catch(Exception e) {
             e.printStackTrace();

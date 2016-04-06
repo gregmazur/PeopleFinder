@@ -25,7 +25,8 @@ import lombok.Data;
 import org.springframework.util.MultiValueMap;
 import people.network.entity.user.Person;
 import people.network.service.ImageService;
-import people.network.service.image.ImageProcessing;
+import people.network.service.ProcessingEvent;
+import people.network.service.ProcessingListener;
 import people.network.service.rest.Utils;
 
 import java.io.IOException;
@@ -45,14 +46,13 @@ public class PeopleContainer {
         this.mainPage = mainPage;
         this.pictureUploaded = !mainPage.getSearchPerson().getImages().isEmpty();
         this.imageService = service;
-        init();
     }
 
-    private void init() {
+    public void init() {
         MultiValueMap<String, String> map = mainPage.getSearchPerson().getUserSearchParams();
         potentialPersons = mainPage.getService().getUserList(Utils.GET_USERS_METHOD, map, 1000, 0);
         if (pictureUploaded) {
-            potentialPersons = imageService.getSimilarPeople(mainPage.getSearchPerson(), potentialPersons);
+            imageService.findSimilarPeople(mainPage.getSearchPerson(), potentialPersons);
         }
     }
 

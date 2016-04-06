@@ -12,6 +12,7 @@ import org.openimaj.image.processing.face.feature.comparison.FacialFeatureCompar
 import people.network.entity.SearchPerson;
 import people.network.entity.user.Person;
 import people.network.service.ImageService;
+import people.network.service.ProcessingListener;
 import people.network.service.utils.MemoryUtils;
 
 import java.util.Collection;
@@ -19,7 +20,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- *
+ * Обработка изображений - для одной сессии
  *
  * @author Yemelin A.M. <a href="mailto:artem@ibis.ua">artem@ibis.ua</a>
  **/
@@ -28,7 +29,6 @@ public class ImageProcessing implements ImageService {
     private CustomFaceSimilarityEngine<KEDetectedFace, FacePatchFeature> _engine;
 
     private ImageProcessing() {
-        //FaceDetector<KEDetectedFace, FImage> faceDetector = createFKEFaceDetector();
         FacialFeatureExtractor<FacePatchFeature, KEDetectedFace> featureExtractor = new FaceImageFeature.Extractor();
         //FacialFeatureExtractor<FacePatchFeature, KEDetectedFace> featureExtractor = new FacePatchFeature.Extractor();
         //FacialFeatureExtractor<FacePatchFeature, KEDetectedFace> featureExtractor = new LocalLBPHistogram.Extractor(); // ScalingAligner AffineAligner RotateScaleAligner
@@ -44,26 +44,29 @@ public class ImageProcessing implements ImageService {
     }
 
     @Override
-    public List<Person> getSimilarPeople(SearchPerson searchPerson, Collection<Person> potentialPersons) {
-        if(searchPerson.getImages().isEmpty())
-            return Collections.emptyList();
+    public void findSimilarPeople(SearchPerson searchPerson, Collection<Person> potentialPersons) {
+        new Thread(()-> {
+            if(searchPerson.getImages().isEmpty()) return;
 
-        long timeStart = System.currentTimeMillis();
-        MemoryUtils.printMemoryStat();
+            long timeStart = System.currentTimeMillis();
+            MemoryUtils.printMemoryStat();
 
-        boolean isDetected = _engine.setSearchPerson(searchPerson);
-        if(!isDetected)
-            return Collections.emptyList();
-        _engine.setPotentialPersons(potentialPersons);
-        List<Person> result = _engine.calculateSimilarities();
+            boolean isDetected = _engine.setSearchPerson(searchPerson);
+            if(!isDetected) return;
 
-        MemoryUtils.printMemoryStat();
-        long timeEnd = System.currentTimeMillis();
-        long timeCount = timeEnd - timeStart;
-        System.out.println(String.format("Time: %d ms", timeCount));
-        _engine.resetEngine();
+            _engine.calculateSimilarities(potentialPersons);
 
-        return result;
+            MemoryUtils.printMemoryStat();
+            long timeEnd = System.currentTimeMillis();
+            long timeCount = timeEnd - timeStart;
+            System.out.println(String.format("Time: %d ms", timeCount));
+            _engine.resetEngine();
+        }).start();
+    }
+
+    @Override
+    public void addProcessingListener(ProcessingListener listener) {
+        _engine.addProcessingListener(listener);
     }
 
     public static FKEFaceDetector createFKEFaceDetector() {

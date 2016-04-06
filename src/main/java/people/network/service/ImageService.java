@@ -10,7 +10,8 @@ public interface ImageService {
     /**
      * @param person          search person
      * @param potentialPeople Collection of users gathered by selection params
-     * @return sorted potential persons by similarity
      */
-    List<Person> getSimilarPeople(SearchPerson person, Collection<Person> potentialPeople);
+    void findSimilarPeople(SearchPerson person, Collection<Person> potentialPeople);
+
+    void addProcessingListener(ProcessingListener listener);
 }
