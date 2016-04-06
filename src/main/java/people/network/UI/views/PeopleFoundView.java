@@ -103,7 +103,7 @@ public class PeopleFoundView extends Panel implements View, ProcessingListener {
     public void eventHappened(ProcessingEvent event) {
         listLayout.removeAllComponents();
         proceedPersons.addAll(event.getProcessedPersons());
-        proceedPersons.sort((o1, o2) -> Double.compare(o1.getSimilarity(), o1.getSimilarity()));
+        proceedPersons.sort(Person::compareBySimilarity);
         for (int i = 0; i < proceedPersons.size(); ++i) {
             addRow(i, proceedPersons);
         }
