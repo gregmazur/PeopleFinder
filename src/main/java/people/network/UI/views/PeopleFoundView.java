@@ -22,13 +22,14 @@ import java.util.List;
  * Created by greg on 19.03.16.
  */
 @SpringView
-public class PeopleFoundView extends VerticalLayout implements View, ProcessingListener {
+public class PeopleFoundView extends Panel implements View, ProcessingListener {
     private static final long serialVersionUID = -1200000724647918808L;
     private MainPage mainPage;
-    private VerticalLayout lazyLayout;
+    private VerticalLayout listLayout;
     private ImageService imageService;
+    private List<Person> potentialPersons = new ArrayList<>();
     private List<Person> proceedPersons = new ArrayList<>();
-    private Panel panel;
+    private int index = 0;
 
     public PeopleFoundView(MainPage mainPage) {
         this.mainPage = mainPage;
@@ -38,38 +39,42 @@ public class PeopleFoundView extends VerticalLayout implements View, ProcessingL
 
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent event) {
+        listLayout.removeAllComponents();
         MultiValueMap<String, String> map = mainPage.getSearchPerson().getUserSearchParams();
-        List<Person> potentialPersons = mainPage.getService().getUserList(Utils.GET_USERS_METHOD, map, 1000, 0);
+        potentialPersons = mainPage.getService().getUserList(Utils.GET_USERS_METHOD, map, 1000, 0);
         if (!mainPage.getSearchPerson().getImages().isEmpty()) {
             imageService.addProcessingListener(this);
             imageService.findSimilarPeople(mainPage.getSearchPerson(), potentialPersons);
         }else {
-            for (int i = 0; i < 10; ++i) {
-                addRow(lazyLayout, i, potentialPersons);
+            for (index = 0; index < 10; ++index) {
+                addRow(index, potentialPersons);
             }
         }
-
-
-
     }
 
     private void init() {
-        panel = new Panel();
-        panel.setSizeFull();
-        addComponent(panel);
-        setExpandRatio(panel, 1.0f);
 
-        lazyLayout = new VerticalLayout();
+        setSizeFull();
+        setImmediate(true);
 
-        lazyLayout.setWidth("100%");
-        lazyLayout.setStyleName("demoContentLayout");
-        lazyLayout.setSpacing(true);
-        lazyLayout.setMargin(true);
-        panel.setContent(lazyLayout);
+        listLayout = new VerticalLayout();
+
+        listLayout.setWidth("100%");
+        listLayout.setStyleName("demoContentLayout");
+        listLayout.setSpacing(true);
+        listLayout.setMargin(true);
+        setContent(listLayout);
     }
 
+    @Override
+    public void setScrollTop(int scrollTop) {
+        super.setScrollTop(scrollTop);
+        addRow(++index,potentialPersons);
+        mainPage.push();
 
-    public void addRow(ComponentContainer container, int index, List<Person> persons) {
+    }
+
+    public void addRow(int index, List<Person> persons) {
         HorizontalLayout layout = new HorizontalLayout();
         Person person = persons.get(index);
         Image image = new Image();
@@ -89,15 +94,18 @@ public class PeopleFoundView extends VerticalLayout implements View, ProcessingL
         Link link = new Link(url, new ExternalResource(url));
         rightSide.addComponent(link);
         rightSide.addComponent(label);
-        container.addComponent(layout);
+        listLayout.addComponent(layout);
+        layout.setWidth(50, Unit.PERCENTAGE);
+        listLayout.setComponentAlignment(layout, Alignment.MIDDLE_CENTER);
     }
 
     @Override
     public void eventHappened(ProcessingEvent event) {
+        listLayout.removeAllComponents();
         proceedPersons.addAll(event.getProcessedPersons());
         proceedPersons.sort((o1, o2) -> Double.compare(o1.getSimilarity(), o1.getSimilarity()));
         for (int i = 0; i < proceedPersons.size(); ++i) {
-            addRow(lazyLayout,i, proceedPersons);
+            addRow(i, proceedPersons);
         }
         mainPage.push();
     }
