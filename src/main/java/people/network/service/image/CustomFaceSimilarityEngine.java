@@ -179,7 +179,7 @@ public class CustomFaceSimilarityEngine<D extends DetectedFace, F extends Facial
     }
 
     private void fireEvent(List<Person> pList) {
-        ProcessingEvent event = new ProcessingEvent(this, pList);
+        ProcessingEvent event = new ProcessingEvent(this, new ArrayList<>(pList));
         for(ProcessingListener l : listeners) {
             l.eventHappened(event);
         }
