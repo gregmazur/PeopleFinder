@@ -39,7 +39,6 @@ public class FindingForm extends VerticalLayout implements Serializable, View {
     universityCountry = new ComboBox("University country"), universityCity = new ComboBox("University city"),
             universityRegion = new ComboBox("University region");
     private TextField name = new TextField("name");
-    private TextArea result;
 
     private enum InfoRole {
         HOME, UNIVERSITY, CURRENT
