@@ -3,6 +3,7 @@ package people.network.UI.views;
 import com.vaadin.data.Property;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
+import com.vaadin.spring.annotation.SpringView;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import org.springframework.util.LinkedMultiValueMap;
@@ -23,6 +24,7 @@ import java.util.LinkedList;
 /**
  * @author Mazur G <a href="mailto:mazur@ibis.ua">mazur@ibis.ua</a>
  */
+@SpringView
 public class FindingForm extends VerticalLayout implements Serializable, View {
 
     private static final long serialVersionUID = -6575751250735498511L;

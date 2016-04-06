@@ -1,5 +1,6 @@
 package people.network.UI;
 
+import com.vaadin.annotations.Push;
 import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.VaadinServletConfiguration;
 import com.vaadin.navigator.Navigator;
@@ -24,6 +25,7 @@ import java.util.Locale;
 @EqualsAndHashCode(callSuper = true)
 @Theme("valo")
 @SpringUI
+@Push
 @Data
 public class MainPage extends UI {
 
