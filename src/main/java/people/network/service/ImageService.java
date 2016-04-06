@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.List;
 
 public interface ImageService {
+
     /**
      * @param person          search person
      * @param potentialPeople Collection of users gathered by selection params

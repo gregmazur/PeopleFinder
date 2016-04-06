@@ -45,23 +45,25 @@ public class ImageProcessing implements ImageService {
 
     @Override
     public void findSimilarPeople(SearchPerson searchPerson, Collection<Person> potentialPersons) {
-        new Thread(()-> {
-            if(searchPerson.getImages().isEmpty()) return;
+        /*new Thread(()-> {
 
-            long timeStart = System.currentTimeMillis();
-            MemoryUtils.printMemoryStat();
+        }).start();*/
 
-            boolean isDetected = _engine.setSearchPerson(searchPerson);
-            if(!isDetected) return;
+        if(searchPerson.getImages().isEmpty()) return;
 
-            _engine.calculateSimilarities(potentialPersons);
+        long timeStart = System.currentTimeMillis();
+        MemoryUtils.printMemoryStat();
 
-            MemoryUtils.printMemoryStat();
-            long timeEnd = System.currentTimeMillis();
-            long timeCount = timeEnd - timeStart;
-            System.out.println(String.format("Time: %d ms", timeCount));
-            _engine.resetEngine();
-        }).start();
+        boolean isDetected = _engine.setSearchPerson(searchPerson);
+        if(!isDetected) return;
+
+        _engine.calculateSimilarities(potentialPersons);
+
+        MemoryUtils.printMemoryStat();
+        long timeEnd = System.currentTimeMillis();
+        long timeCount = timeEnd - timeStart;
+        System.out.println(String.format("Time: %d ms", timeCount));
+        _engine.resetEngine();
     }
 
     @Override

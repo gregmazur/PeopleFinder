@@ -5,8 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import org.openimaj.image.FImage;
 import org.openimaj.image.ImageUtilities;
-import org.openimaj.image.MBFImage;
-import org.openimaj.image.colour.Transforms;
 import people.network.service.utils.ProxyUtils;
 
 import java.io.*;
@@ -27,7 +25,6 @@ public class Person implements Serializable {
     @JsonProperty(value = "photo_max_orig")
     private String picURL;
 
-    private MBFImage tmpImage;
     private double similarity;
 
     @Override
@@ -52,31 +49,14 @@ public class Person implements Serializable {
     }
 
     public FImage getFImage() {
-        FImage fImage = null;
         try {
             URL url = new URL(picURL);
             InputStream stream = url.openConnection(ProxyUtils.getProxy()).getInputStream();
-            tmpImage = ImageUtilities.readMBF(stream);
-            fImage = Transforms.calculateIntensity(tmpImage);
+            return ImageUtilities.readF(stream);
         } catch(Exception e) {
             e.printStackTrace();
-            tmpImage = null;
+            return null;
         }
-        return fImage;
-    }
-
-    public InputStream getPictureStream() throws IOException {
-        if(tmpImage == null) return null;
-        final ByteArrayOutputStream output = new ByteArrayOutputStream() {
-            @Override
-            public synchronized byte[] toByteArray() {
-                return this.buf;
-            }
-        };
-        //ImageIO.write(ImageUtilities.createBufferedImage(tmpImage), "jpg", output);
-        ImageUtilities.write(tmpImage, "jpg", output);
-        tmpImage = null;
-        return new ByteArrayInputStream(output.toByteArray(), 0, output.size());
     }
 
     public static int compareBySimilarity(Person p1, Person p2) {

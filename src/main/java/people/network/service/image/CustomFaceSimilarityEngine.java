@@ -3,8 +3,6 @@ package people.network.service.image;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
 import org.openimaj.image.FImage;
 import org.openimaj.image.processing.face.detection.DatasetFaceDetector;
 import org.openimaj.image.processing.face.detection.DetectedFace;
@@ -18,7 +16,6 @@ import people.network.service.ProcessingEvent;
 import people.network.service.ProcessingListener;
 
 import java.util.*;
-import java.util.Map.Entry;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
@@ -47,6 +44,8 @@ public class CustomFaceSimilarityEngine<D extends DetectedFace, F extends Facial
 
     private volatile float faceConfidence = 10.0f;
 
+    private final int portionSize;
+
     /**
      * Construct a new {@link CustomFaceSimilarityEngine} from the
      * specified detector, extractor and comparator.
@@ -61,6 +60,7 @@ public class CustomFaceSimilarityEngine<D extends DetectedFace, F extends Facial
         this.detector = ThreadLocal.withInitial(detectorSupplier);
         this.extractor = extractor;
         this.comparator = comparator;
+        this.portionSize = 15;
 
         detectedFaceCache = CacheBuilder.newBuilder().expireAfterAccess(10, TimeUnit.MINUTES).
                 build(new CacheLoader<Person, List<D>>() {
@@ -161,13 +161,15 @@ public class CustomFaceSimilarityEngine<D extends DetectedFace, F extends Facial
             fList.add(f);
         }
 
-        List<Person> pList = new ArrayList<>(32);
+        List<Person> pList = new ArrayList<>(portionSize);
         for(Future<Person> f : fList) {
             try {
                 Person p = f.get(30, TimeUnit.SECONDS);
                 pList.add(p);
-                if(pList.size() >= 15)
+                if(pList.size() >= portionSize) {
                     fireEvent(pList);
+                    pList.clear();
+                }
             } catch(Exception ex) {
                 ex.printStackTrace();
             }
