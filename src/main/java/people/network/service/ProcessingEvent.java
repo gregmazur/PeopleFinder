@@ -32,10 +32,17 @@ import java.util.List;
 @Data
 public class ProcessingEvent extends EventObject {
 
+    private EventId eventId;
+
     private List<Person> processedPersons;
 
-    public ProcessingEvent(Object source, List<Person> processedPersons) {
+    public ProcessingEvent(Object source, EventId eventId, List<Person> processedPersons) {
         super(source);
+        this.eventId = eventId;
         this.processedPersons = processedPersons;
+    }
+
+    public enum EventId {
+        PARTIAL_PROCESSING, FINAL_PROCESSED;
     }
 }

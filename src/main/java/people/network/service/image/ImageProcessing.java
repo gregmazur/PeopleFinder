@@ -16,8 +16,6 @@ import people.network.service.ProcessingListener;
 import people.network.service.utils.MemoryUtils;
 
 import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Обработка изображений - для одной сессии
@@ -29,14 +27,13 @@ public class ImageProcessing implements ImageService {
     private CustomFaceSimilarityEngine<KEDetectedFace, FacePatchFeature> _engine;
 
     private ImageProcessing() {
-        FacialFeatureExtractor<FacePatchFeature, KEDetectedFace> featureExtractor = new FaceImageFeature.Extractor();
-        //FacialFeatureExtractor<FacePatchFeature, KEDetectedFace> featureExtractor = new FacePatchFeature.Extractor();
-        //FacialFeatureExtractor<FacePatchFeature, KEDetectedFace> featureExtractor = new LocalLBPHistogram.Extractor(); // ScalingAligner AffineAligner RotateScaleAligner
-        FacialFeatureComparator<FacePatchFeature> featureComparator = new FaceFVComparator<>(FloatFVComparison.EUCLIDEAN);
-
-        _engine = CustomFaceSimilarityEngine.create(ImageProcessing::createFKEFaceDetector, featureExtractor, featureComparator);
-        //_faceEngine.setFaceConfidence(25.0f);
-        //_faceSimilarity.setUseCache(true);
+        _engine = CustomFaceSimilarityEngine.create(
+                ImageProcessing::createFKEFaceDetector,
+                createFacialFeatureExtractor(),
+                createFacialFeatureComparator()
+                );
+        //_engine.setFaceConfidence(25.0f);
+        //_engine.setUseCache(true);
     }
 
     public static ImageProcessing createInstance() {
@@ -63,7 +60,7 @@ public class ImageProcessing implements ImageService {
         long timeEnd = System.currentTimeMillis();
         long timeCount = timeEnd - timeStart;
         System.out.println(String.format("Time: %d ms", timeCount));
-        _engine.resetEngine();
+        //_engine.resetEngine();
     }
 
     @Override
@@ -73,5 +70,16 @@ public class ImageProcessing implements ImageService {
 
     public static FKEFaceDetector createFKEFaceDetector() {
         return new FKEFaceDetector(HaarCascadeDetector.BuiltInCascade.frontalface_alt.load());
+    }
+
+    public static FacialFeatureExtractor<FacePatchFeature, KEDetectedFace> createFacialFeatureExtractor() {
+        FacialFeatureExtractor<FacePatchFeature, KEDetectedFace> featureExtractor = new FaceImageFeature.Extractor();
+        //FacialFeatureExtractor<FacePatchFeature, KEDetectedFace> featureExtractor = new FacePatchFeature.Extractor();
+        //FacialFeatureExtractor<FacePatchFeature, KEDetectedFace> featureExtractor = new LocalLBPHistogram.Extractor(); // ScalingAligner AffineAligner RotateScaleAligner
+        return featureExtractor;
+    }
+
+    public static FacialFeatureComparator<FacePatchFeature> createFacialFeatureComparator() {
+        return new FaceFVComparator<>(FloatFVComparison.EUCLIDEAN);
     }
 }

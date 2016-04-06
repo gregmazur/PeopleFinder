@@ -31,9 +31,11 @@ public class ImageProcessingTest {
     public void testSimilarityEngine() throws Exception {
         System.out.println("========Test started========");
 
-        FacialFeatureExtractor<FacePatchFeature, KEDetectedFace> featureExtractor = new FaceImageFeature.Extractor();
-        FacialFeatureComparator<FacePatchFeature> featureComparator = new FaceFVComparator<>(FloatFVComparison.EUCLIDEAN);
-        CustomFaceSimilarityEngine engine = CustomFaceSimilarityEngine.create(ImageProcessing::createFKEFaceDetector, featureExtractor, featureComparator);
+        CustomFaceSimilarityEngine engine = CustomFaceSimilarityEngine.create(
+                ImageProcessing::createFKEFaceDetector,
+                ImageProcessing.createFacialFeatureExtractor(),
+                ImageProcessing.createFacialFeatureComparator()
+                                                                             );
 
         String testFile = "D:\\maya6.jpg";
         FImage img = ImageUtilities.readF(new File(testFile));
@@ -42,6 +44,7 @@ public class ImageProcessingTest {
         List<FImage> faceImages = faces.stream().map(DetectedFace::getFacePatch).collect(Collectors.toList());
         DisplayUtilities.display("TestImage", faceImages);
         Thread.sleep(30000);
+        //DisplayUtilities.display("TestImage", searchFace.getFacePatch());
 
     }
 }

@@ -51,7 +51,11 @@ public class ImageProcessingTestOld {
         //FacialFeatureExtractor<FacePatchFeature, KEDetectedFace> featureExtractor = new LocalLBPHistogram.Extractor(); // ScalingAligner AffineAligner RotateScaleAligner
         FacialFeatureComparator<FacePatchFeature> featureComparator = new FaceFVComparator<>(FloatFVComparison.EUCLIDEAN);
 
-        _faceSimilarityEngine = CustomFaceSimilarityEngine.create(ImageProcessing::createFKEFaceDetector, featureExtractor, featureComparator);
+        _faceSimilarityEngine = CustomFaceSimilarityEngine.create(
+                ImageProcessing::createFKEFaceDetector,
+                ImageProcessing.createFacialFeatureExtractor(),
+                ImageProcessing.createFacialFeatureComparator()
+                                                                 );
         //_faceEngine.setFaceConfidence(25.0f);
         //_faceSimilarity.setUseCache(true);
 

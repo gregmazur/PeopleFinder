@@ -40,8 +40,8 @@ public class SearchPerson {
 
     private Collection<InputStream> images = new ArrayList<>();
     private MultiValueMap<String, String> userSearchParams = new LinkedMultiValueMap<String, String>(35) {{
-        add("country", "2");
-        add("city", "292");
+        //add("country", "2");
+        //add("city", "292");
     }};
 
     public SearchPerson() {}

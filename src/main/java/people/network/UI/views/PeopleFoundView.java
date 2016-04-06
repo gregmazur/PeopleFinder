@@ -27,7 +27,7 @@ public class PeopleFoundView extends VerticalLayout implements View, ProcessingL
     private MainPage mainPage;
     private VerticalLayout lazyLayout;
     private ImageService imageService;
-    private List<Person> proceedPersons = new ArrayList<>();
+    private List<Person> proceedPersons = new ArrayList<>(256);
     private Panel panel;
 
     public PeopleFoundView(MainPage mainPage) {
@@ -94,8 +94,9 @@ public class PeopleFoundView extends VerticalLayout implements View, ProcessingL
 
     @Override
     public void eventHappened(ProcessingEvent event) {
+        lazyLayout.removeAllComponents();
         proceedPersons.addAll(event.getProcessedPersons());
-        proceedPersons.sort((o1, o2) -> Double.compare(o1.getSimilarity(), o1.getSimilarity()));
+        proceedPersons.sort(Person::compareBySimilarity);
         for (int i = 0; i < proceedPersons.size(); ++i) {
             addRow(lazyLayout,i, proceedPersons);
         }

@@ -13,6 +13,7 @@ import org.openimaj.image.processing.face.feature.comparison.FacialFeatureCompar
 import people.network.entity.SearchPerson;
 import people.network.entity.user.Person;
 import people.network.service.ProcessingEvent;
+import people.network.service.ProcessingEvent.EventId;
 import people.network.service.ProcessingListener;
 
 import java.util.*;
@@ -20,6 +21,7 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Face similarity engine
@@ -30,10 +32,10 @@ public class CustomFaceSimilarityEngine<D extends DetectedFace, F extends Facial
 
     private List<ProcessingListener> listeners = new ArrayList<>();
 
+    private ThreadLocal<FaceDetector<D, FImage>> detector;
     private FacialFeatureExtractor<F, D> extractor;
     private FacialFeatureComparator<F> comparator;
 
-    private ThreadLocal<FaceDetector<D, FImage>> detector;
     private LoadingCache<Person, List<D>> detectedFaceCache;
 
     private ExecutorService executor;
@@ -44,7 +46,7 @@ public class CustomFaceSimilarityEngine<D extends DetectedFace, F extends Facial
 
     private volatile float faceConfidence = 10.0f;
 
-    private final int portionSize;
+    private int portionSize;
 
     /**
      * Construct a new {@link CustomFaceSimilarityEngine} from the
@@ -111,7 +113,6 @@ public class CustomFaceSimilarityEngine<D extends DetectedFace, F extends Facial
             return false;
         }
         this.searchFace = DatasetFaceDetector.getBiggest(faces);
-        //DisplayUtilities.display("TestImage", searchFace.getFacePatch());
         System.out.println("Search face detected");
         return true;
     }
@@ -136,7 +137,6 @@ public class CustomFaceSimilarityEngine<D extends DetectedFace, F extends Facial
      * Compute the similarities between faces of search person and potential person
      */
     public void calculateSimilarities(Collection<Person> personList) {
-
         System.out.println("Starting calculate similarities...");
         AtomicInteger aInt = new AtomicInteger(0);
         int tasksSize = personList.size();
@@ -145,43 +145,47 @@ public class CustomFaceSimilarityEngine<D extends DetectedFace, F extends Facial
 
         for(Person person : personList) {
             Future<Person> f = executor.submit(() -> {
-                System.out.println(String.format("Processing person %d of %d. PicURL=%s",
-                        aInt.incrementAndGet(), tasksSize, person.getPicURL()));
+                System.out.println(String.format("Processing person %d of %d. PicURL=%s", aInt.incrementAndGet(), tasksSize, person.getPicURL()));
                 List<D> faces = getDetectedFacesCache(person);
-                faces.stream().map(this::getFaceFeature).forEach(faceFeature -> {
-                    double d = comparator.compare(faceFeature, searchFaceFeature);
-                    if(comparator.isDistance()) {
-                        if(person.getSimilarity() < d) person.setSimilarity(d);
-                    } else {
-                        if(person.getSimilarity() > d) person.setSimilarity(d);
-                    }
-                });
+                if(!faces.isEmpty()) {
+                    Stream<Double> stream = faces.stream().map(face -> {
+                        F faceFeature = getFaceFeature(face);
+                        return comparator.compare(faceFeature, searchFaceFeature);
+                    });
+                    Optional<Double> similarity = comparator.isDistance() ? stream.min(Double::compare) : stream.max(Double::compare);
+                    person.setSimilarity(similarity.isPresent() ? similarity.get() : 10000.00);
+                } else {
+                    person.setSimilarity(10000.00);
+                }
                 return person;
             });
             fList.add(f);
         }
 
         List<Person> pList = new ArrayList<>(portionSize);
+        int processed = 0;
         for(Future<Person> f : fList) {
             try {
                 Person p = f.get(30, TimeUnit.SECONDS);
+                processed++;
                 pList.add(p);
                 if(pList.size() >= portionSize) {
-                    fireEvent(pList);
-                    pList.clear();
+                    EventId eventId = processed == portionSize ? EventId.FINAL_PROCESSED : EventId.PARTIAL_PROCESSING;
+                    fireEvent(eventId, pList);
+                    pList = new ArrayList<>(portionSize);
                 }
             } catch(Exception ex) {
                 ex.printStackTrace();
             }
         }
         if(!pList.isEmpty())
-            fireEvent(pList);
+            fireEvent(EventId.FINAL_PROCESSED, pList);
 
         System.out.println("All similarities calculated.");
     }
 
-    private void fireEvent(List<Person> pList) {
-        ProcessingEvent event = new ProcessingEvent(this, new ArrayList<>(pList));
+    private void fireEvent(EventId eventId, List<Person> pList) {
+        ProcessingEvent event = new ProcessingEvent(this, eventId, pList);
         for(ProcessingListener l : listeners) {
             l.eventHappened(event);
         }
