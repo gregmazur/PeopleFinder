@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
  **/
 public class CustomFaceSimilarityEngine<D extends DetectedFace, F extends FacialFeature> {
 
-    private List<ProcessingListener> listeners;
+    private List<ProcessingListener> listeners = new ArrayList<>();
 
     private FacialFeatureExtractor<F, D> extractor;
     private FacialFeatureComparator<F> comparator;
