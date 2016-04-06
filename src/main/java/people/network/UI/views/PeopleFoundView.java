@@ -15,6 +15,7 @@ import people.network.service.ProcessingListener;
 import people.network.service.image.ImageProcessing;
 import people.network.service.rest.Utils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -26,7 +27,7 @@ public class PeopleFoundView extends VerticalLayout implements View, ProcessingL
     private MainPage mainPage;
     private VerticalLayout lazyLayout;
     private ImageService imageService;
-    private int indexCounter;
+    private List<Person> proceedPersons = new ArrayList<>();
     private Panel panel;
 
     public PeopleFoundView(MainPage mainPage) {
@@ -39,7 +40,6 @@ public class PeopleFoundView extends VerticalLayout implements View, ProcessingL
     public void enter(ViewChangeListener.ViewChangeEvent event) {
         MultiValueMap<String, String> map = mainPage.getSearchPerson().getUserSearchParams();
         List<Person> potentialPersons = mainPage.getService().getUserList(Utils.GET_USERS_METHOD, map, 1000, 0);
-        indexCounter = 0;
         if (!mainPage.getSearchPerson().getImages().isEmpty()) {
             imageService.addProcessingListener(this);
             imageService.findSimilarPeople(mainPage.getSearchPerson(), potentialPersons);
@@ -94,9 +94,10 @@ public class PeopleFoundView extends VerticalLayout implements View, ProcessingL
 
     @Override
     public void eventHappened(ProcessingEvent event) {
-        List<Person> potentialPersons = event.getProcessedPersons();
-        for (int i = 0; i < potentialPersons.size(); ++i) {
-            addRow(lazyLayout,i, potentialPersons);
+        proceedPersons.addAll(event.getProcessedPersons());
+        proceedPersons.sort((o1, o2) -> Double.compare(o1.getSimilarity(), o1.getSimilarity()));
+        for (int i = 0; i < proceedPersons.size(); ++i) {
+            addRow(lazyLayout,i, proceedPersons);
         }
         mainPage.push();
     }
