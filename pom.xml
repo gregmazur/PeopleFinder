@@ -53,12 +53,6 @@
 
         <dependency>
             <groupId>org.vaadin.addon</groupId>
-            <artifactId>oauthpopup</artifactId>
-            <version>0.0.4</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.vaadin.addon</groupId>
             <artifactId>easyuploads</artifactId>
             <version>7.4.3</version>
         </dependency>

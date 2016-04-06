@@ -2,19 +2,19 @@ package people.network.UI.views;
 
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
+import com.vaadin.server.ExternalResource;
+import com.vaadin.server.Resource;
 import com.vaadin.spring.annotation.SpringView;
-import com.vaadin.ui.ComponentContainer;
-import com.vaadin.ui.Panel;
-import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.*;
+import org.springframework.util.MultiValueMap;
 import people.network.UI.MainPage;
-import people.network.UI.PeopleContainer;
 import people.network.entity.user.Person;
 import people.network.service.ImageService;
 import people.network.service.ProcessingEvent;
 import people.network.service.ProcessingListener;
 import people.network.service.image.ImageProcessing;
+import people.network.service.rest.Utils;
 
-import java.io.IOException;
 import java.util.List;
 
 /**
@@ -25,23 +25,32 @@ public class PeopleFoundView extends VerticalLayout implements View, ProcessingL
     private static final long serialVersionUID = -1200000724647918808L;
     private MainPage mainPage;
     private VerticalLayout lazyLayout;
-    private PeopleContainer peopleContainer;
     private ImageService imageService;
+    private int indexCounter;
     private Panel panel;
-    private int indexCounter = 0;
-    private int maxNumberOfPpl;
 
     public PeopleFoundView(MainPage mainPage) {
         this.mainPage = mainPage;
         imageService = ImageProcessing.createInstance();
-        imageService.addProcessingListener(this);
         init();
     }
 
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent event) {
-        peopleContainer = new PeopleContainer(mainPage, imageService);
-        peopleContainer.init();
+        MultiValueMap<String, String> map = mainPage.getSearchPerson().getUserSearchParams();
+        List<Person> potentialPersons = mainPage.getService().getUserList(Utils.GET_USERS_METHOD, map, 1000, 0);
+        indexCounter = 0;
+        if (!mainPage.getSearchPerson().getImages().isEmpty()) {
+            imageService.addProcessingListener(this);
+            imageService.findSimilarPeople(mainPage.getSearchPerson(), potentialPersons);
+        }else {
+            for (int i = 0; i < 10; ++i) {
+                addRow(lazyLayout, i, potentialPersons);
+            }
+        }
+
+
+
     }
 
     private void init() {
@@ -60,25 +69,36 @@ public class PeopleFoundView extends VerticalLayout implements View, ProcessingL
     }
 
 
-    protected void addNewRow(ComponentContainer container) throws IOException {
-        container.addComponent(peopleContainer.getRow(++indexCounter));
+    public void addRow(ComponentContainer container, int index, List<Person> persons) {
+        HorizontalLayout layout = new HorizontalLayout();
+        Person person = persons.get(index);
+        Image image = new Image();
+        image.setHeight("158px");
+        image.setWidth("133px");
+        Resource resource = new ExternalResource(person.getPicURL());
+        image.setSource(resource);
+        layout.addComponent(image);
+
+        VerticalLayout rightSide = new VerticalLayout();
+        rightSide.setSpacing(true);
+        layout.addComponent(rightSide);
+        layout.setExpandRatio(rightSide, 1.0f);
+        Label label = new Label(person.toString());
+        rightSide.addComponent(label);
+        String url = "http://vk.com/id" + person.getId();
+        Link link = new Link(url, new ExternalResource(url));
+        rightSide.addComponent(link);
+        rightSide.addComponent(label);
+        container.addComponent(layout);
     }
 
     @Override
     public void eventHappened(ProcessingEvent event) {
-        List<Person> persons = event.getProcessedPersons();
-
-        ////////
-        maxNumberOfPpl = peopleContainer.getPotentialPersons().size();
-        lazyLayout.removeAllComponents();
-        indexCounter = 0;
-        try {
-            for (int i = 0; i < 100; ++i) {
-                addNewRow(lazyLayout);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+        List<Person> potentialPersons = event.getProcessedPersons();
+        for (int i = 0; i < potentialPersons.size(); ++i) {
+            addRow(lazyLayout,i, potentialPersons);
         }
+        mainPage.push();
     }
 }
 

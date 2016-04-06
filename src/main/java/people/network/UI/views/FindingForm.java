@@ -56,6 +56,9 @@ public class FindingForm extends VerticalLayout implements Serializable, View {
 
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent event) {
+        String token = getAccessToken();
+        if (null != token) mainPage.getService().setAccessToken(token);
+        else openSignInWindow();
     }
 
     private enum Status {
@@ -83,9 +86,7 @@ public class FindingForm extends VerticalLayout implements Serializable, View {
         header.addStyleName(ValoTheme.LABEL_HUGE);
         addComponent(new Label());
 
-        String token = getAccessToken();
-        if (null != token) mainPage.getService().setAccessToken(token);
-        else openSignInWindow();
+
 
         setResponsive(true);
         Collection<RespSrchCrtriaObj> countries = getCountriesList();
@@ -140,6 +141,7 @@ public class FindingForm extends VerticalLayout implements Serializable, View {
 
         UploadField uploadField = getPictureUploadField();
         addComponent(uploadField);
+        uploadField.setDisplayUpload(true);
         uploadField.setWidth(50, Unit.PERCENTAGE);
         setComponentAlignment(uploadField, Alignment.MIDDLE_CENTER);
 
@@ -171,8 +173,7 @@ public class FindingForm extends VerticalLayout implements Serializable, View {
         subContent.addComponent(new Label("Please login first"));
         String link = "https://oauth.vk.com/authorize?client_id=5343222&display=page&redirect_uri=http://localhost:8080&scope=friends&response_type=token&v=5.8";
         subContent.addComponent(new Button("LOGIN", event -> {
-            mainPage.getPage().open(link, "login");
-            subWindow.close();
+            mainPage.getPage().setLocation(link);
         }));
         // Center it in the browser window
         subWindow.center();
@@ -523,7 +524,7 @@ public class FindingForm extends VerticalLayout implements Serializable, View {
     }
 
     private void putParam(String key, String value) {
-        Utils.putParam(mainPage.getSearchPerson().getUserSearchParams(),key,value);
+        Utils.putParam(mainPage.getSearchPerson().getUserSearchParams(), key, value);
     }
 
     private void putParam(String key, long value) {

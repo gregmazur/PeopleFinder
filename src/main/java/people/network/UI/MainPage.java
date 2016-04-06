@@ -1,5 +1,6 @@
 package people.network.UI;
 
+import com.vaadin.annotations.PreserveOnRefresh;
 import com.vaadin.annotations.Push;
 import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.VaadinServletConfiguration;
@@ -28,7 +29,6 @@ import java.util.Locale;
 @Push
 @Data
 public class MainPage extends UI {
-
 
     @WebServlet(value = "/*", asyncSupported = true)
     @VaadinServletConfiguration(productionMode = false, ui = MainPage.class, widgetset = "people.network.UI.CustomWidget")
