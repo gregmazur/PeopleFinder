@@ -23,12 +23,7 @@ public class Utils {
 
     public static final String GET_USERS_METHOD = "users.search";
 
-    public static void bindItemsToComboBox(ComboBox comboBox, Collection items){
-        for (Object o : items){
-            comboBox.addItem(o);
-            comboBox.setItemCaption(o,o.toString());
-        }
-    }
+
 
     public static void showError(){
         new Notification("Error",

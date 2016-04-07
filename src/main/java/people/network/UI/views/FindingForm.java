@@ -319,7 +319,7 @@ public class FindingForm extends VerticalLayout implements Serializable, View {
         ComboBox cityCB = bindedCB[2];
         countryCB.setImmediate(true);
 
-        Utils.bindItemsToComboBox(countryCB, countries);
+        bindItemsToComboBox(countryCB, countries);
 
         countryCB.addValueChangeListener(event -> {
             regionCB.setVisible(true);
@@ -519,7 +519,7 @@ public class FindingForm extends VerticalLayout implements Serializable, View {
 
     private void loader(ComboBox comboBox, MultiValueMap<String, String> map, String method) {
         Collection<RespSrchCrtriaObj> items = mainPage.getService().getCriteriaList(method, map, 1000, 0);
-        Utils.bindItemsToComboBox(comboBox, items);
+        bindItemsToComboBox(comboBox, items);
     }
 
     private void putParam(String key, String value) {
@@ -528,6 +528,13 @@ public class FindingForm extends VerticalLayout implements Serializable, View {
 
     private void putParam(String key, long value) {
         putParam(key, String.valueOf(value));
+    }
+
+    private void bindItemsToComboBox(ComboBox comboBox, Collection items){
+        for (Object o : items){
+            comboBox.addItem(o);
+            comboBox.setItemCaption(o,o.toString());
+        }
     }
 
 }

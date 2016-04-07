@@ -26,8 +26,8 @@ public class PeopleFoundView extends Panel implements View, ProcessingListener {
     private static final long serialVersionUID = -1200000724647918808L;
     private MainPage mainPage;
     private VerticalLayout listLayout;
+    private Button loadMoreButton;
     private ImageService imageService;
-    private List<Person> potentialPersons = new ArrayList<>();
     private List<Person> proceedPersons = new ArrayList<>();
     private int index = 0;
 
@@ -41,45 +41,54 @@ public class PeopleFoundView extends Panel implements View, ProcessingListener {
     public void enter(ViewChangeListener.ViewChangeEvent event) {
         listLayout.removeAllComponents();
         MultiValueMap<String, String> map = mainPage.getSearchPerson().getUserSearchParams();
-        potentialPersons = mainPage.getService().getUserList(Utils.GET_USERS_METHOD, map, 1000, 0);
+        List<Person> potentialPersons = mainPage.getService().getUserList(Utils.GET_USERS_METHOD, map, 1000, 0);
         if (!mainPage.getSearchPerson().getImages().isEmpty()) {
             imageService.addProcessingListener(this);
             imageService.findSimilarPeople(mainPage.getSearchPerson(), potentialPersons);
         }else {
-            for (index = 0; index < 10; ++index) {
-                addRow(index, potentialPersons);
+            proceedPersons = potentialPersons;
+            for (index = 0; index < 20; ++index) {
+                addRow(index);
             }
+            addLoadMoreBtn();
         }
+
     }
 
     private void init() {
 
         setSizeFull();
         setImmediate(true);
-
         listLayout = new VerticalLayout();
 
         listLayout.setWidth("100%");
         listLayout.setStyleName("demoContentLayout");
         listLayout.setSpacing(true);
         listLayout.setMargin(true);
+        listLayout.setImmediate(true);
+
+        loadMoreButton = new Button("LOAD MORE");
+        loadMoreButton.addClickListener(buttonEvent -> {
+            listLayout.removeAllComponents();
+            int max = 20 + index;
+            for (int i = 0; i < max && index < proceedPersons.size(); i++, index++) {
+                addRow(i);
+            }
+            listLayout.addComponent(loadMoreButton);
+            listLayout.setComponentAlignment(loadMoreButton, Alignment.MIDDLE_CENTER);
+            mainPage.push();
+        });
+
         setContent(listLayout);
     }
 
-    @Override
-    public void setScrollTop(int scrollTop) {
-        super.setScrollTop(scrollTop);
-        addRow(++index,potentialPersons);
-        mainPage.push();
 
-    }
-
-    public void addRow(int index, List<Person> persons) {
+    public void addRow(int index) {
         HorizontalLayout layout = new HorizontalLayout();
-        Person person = persons.get(index);
+        Person person = proceedPersons.get(index);
         Image image = new Image();
-        image.setHeight("158px");
-        image.setWidth("133px");
+        image.setHeight("207px");
+        image.setWidth("200px");
         Resource resource = new ExternalResource(person.getPicURL());
         image.setSource(resource);
         layout.addComponent(image);
@@ -101,13 +110,22 @@ public class PeopleFoundView extends Panel implements View, ProcessingListener {
 
     @Override
     public void eventHappened(ProcessingEvent event) {
-        listLayout.removeAllComponents();
+        boolean firstLoad = proceedPersons.isEmpty();
         proceedPersons.addAll(event.getProcessedPersons());
         proceedPersons.sort(Person::compareBySimilarity);
-        for (int i = 0; i < proceedPersons.size(); ++i) {
-            addRow(i, proceedPersons);
+        if (firstLoad) {
+            listLayout.removeAllComponents();
+            for (int i = 0; i < proceedPersons.size(); ++i) {
+                addRow(i);
+            }
+            addLoadMoreBtn();
+            mainPage.push();
         }
-        mainPage.push();
+    }
+
+    private void addLoadMoreBtn(){
+        listLayout.addComponent(loadMoreButton);
+        listLayout.setComponentAlignment(loadMoreButton, Alignment.MIDDLE_CENTER);
     }
 }
 

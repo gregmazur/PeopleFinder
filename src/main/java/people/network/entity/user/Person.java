@@ -29,10 +29,9 @@ public class Person implements Serializable {
 
     @Override
     public String toString() {
-        return "UserDetails{" +
-                "firstName='" + firstName + '\'' +
+        return   "firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +
-                '}';
+                ", similarity='" + similarity;
     }
 
     @Override
