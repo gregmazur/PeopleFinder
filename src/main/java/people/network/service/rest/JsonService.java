@@ -3,6 +3,7 @@ package people.network.service.rest;
 
 import com.vaadin.spring.annotation.SpringComponent;
 import lombok.Data;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
@@ -14,6 +15,7 @@ import people.network.entity.criteria.ResponseObjectCriteria;
 import people.network.entity.user.ResponseObjectUsers;
 import people.network.entity.user.Person;
 
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -28,6 +30,10 @@ import java.util.List;
 public class JsonService {
     private String accessToken;
     private RestTemplate restTemplate = new RestTemplate();
+    @Value("${vk.app.id}")
+    private String vkAppId;
+    @Value("${host.name}")
+    private String hostName;
 
     public JsonService() {
         restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
@@ -58,9 +64,17 @@ public class JsonService {
         return Arrays.asList(objects);
     }
 
+    /**
+     * @param method method name
+     * @param params a map with params for the request
+     * @param count number of results per one request
+     * @param from offset
+     * @return no more than 5000 results, will be called recursively inside
+     */
     public List<Person> getUserList(String method, MultiValueMap<String, String> params,
                                     int count, int from) {
-        if (null == params) return Collections.emptyList();
+        // if we have more than 5000 people found no need to load all of them
+        if (null == params || from > 5000) return Collections.emptyList();
         Utils.putParam(params, "fields", "photo_max_orig");
         Utils.putParam(params, "has_photo", "1");
         String url = buildURL(method, params, count, from);
@@ -72,12 +86,13 @@ public class JsonService {
         try {
             responseObject = restTemplate.getForObject(url, ResponseObjectUsers.class);
 
+            if (null == responseObject) return Collections.emptyList();
             Person[] objects = responseObject.getResponse().getItems();
-            if (1000 == objects.length) {
+            result.addAll(Arrays.asList(objects));
+            if (0 != objects.length) {
                 Thread.sleep(500);
-                objects = (Person[]) getUserList(method, params, count, objects.length).toArray();
+                result.addAll(getUserList(method, params, count, from + objects.length));
             }
-            result = Arrays.asList(objects);
         } catch (ResourceAccessException e) {
             Utils.showError();
             return Collections.emptyList();
@@ -89,7 +104,7 @@ public class JsonService {
 
     private String buildURL(String method, MultiValueMap<String, String> params,
                             int count, int from) {
-        Utils.putParam(params,"v", "5.8");
+        Utils.putParam(params, "v", "5.8");
         Utils.putParam(params, "access_token", accessToken);
         Utils.putParam(params, "count", String.valueOf(count));
         if (0 < from) Utils.putParam(params, "offset", String.valueOf(from));

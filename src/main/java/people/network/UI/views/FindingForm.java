@@ -6,6 +6,7 @@ import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.spring.annotation.SpringView;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.vaadin.easyuploads.UploadField;
@@ -39,6 +40,7 @@ public class FindingForm extends VerticalLayout implements Serializable, View {
     universityCountry = new ComboBox("University country"), universityCity = new ComboBox("University city"),
             universityRegion = new ComboBox("University region");
     private TextField name = new TextField("name");
+    private UploadField uploadField;
 
     private enum InfoRole {
         HOME, UNIVERSITY, CURRENT
@@ -58,6 +60,7 @@ public class FindingForm extends VerticalLayout implements Serializable, View {
         String token = getAccessToken();
         if (null != token) mainPage.getService().setAccessToken(token);
         else openSignInWindow();
+        uploadField.clear();
     }
 
     private enum Status {
@@ -84,7 +87,6 @@ public class FindingForm extends VerticalLayout implements Serializable, View {
         setComponentAlignment(header, Alignment.MIDDLE_CENTER);
         header.addStyleName(ValoTheme.LABEL_HUGE);
         addComponent(new Label());
-
 
 
         setResponsive(true);
@@ -138,7 +140,7 @@ public class FindingForm extends VerticalLayout implements Serializable, View {
         group.setWidth(50, Unit.PERCENTAGE);
         setComponentAlignment(group, Alignment.MIDDLE_CENTER);
 
-        UploadField uploadField = getPictureUploadField();
+        uploadField = getPictureUploadField();
         addComponent(uploadField);
         uploadField.setDisplayUpload(true);
         uploadField.setWidth(50, Unit.PERCENTAGE);
@@ -170,7 +172,8 @@ public class FindingForm extends VerticalLayout implements Serializable, View {
         subWindow.setHeight(30, Unit.PERCENTAGE);
 
         subContent.addComponent(new Label("Please login first"));
-        String link = "https://oauth.vk.com/authorize?client_id=5343222&display=page&redirect_uri=http://localhost:8080&scope=friends&response_type=token&v=5.8";
+        String link = "https://oauth.vk.com/authorize?client_id=" + mainPage.getService().getVkAppId() +
+                "&display=page&redirect_uri=" + mainPage.getService().getHostName() + "&scope=friends&response_type=token&v=5.8";
         subContent.addComponent(new Button("LOGIN", event -> {
             mainPage.getPage().setLocation(link);
         }));
@@ -530,10 +533,10 @@ public class FindingForm extends VerticalLayout implements Serializable, View {
         putParam(key, String.valueOf(value));
     }
 
-    private void bindItemsToComboBox(ComboBox comboBox, Collection items){
-        for (Object o : items){
+    private void bindItemsToComboBox(ComboBox comboBox, Collection items) {
+        for (Object o : items) {
             comboBox.addItem(o);
-            comboBox.setItemCaption(o,o.toString());
+            comboBox.setItemCaption(o, o.toString());
         }
     }
 
