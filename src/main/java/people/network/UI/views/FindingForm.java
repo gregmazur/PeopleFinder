@@ -6,7 +6,6 @@ import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.spring.annotation.SpringView;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.vaadin.easyuploads.UploadField;
@@ -20,7 +19,6 @@ import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.Collection;
-import java.util.LinkedList;
 
 /**
  * @author Mazur G <a href="mailto:mazur@ibis.ua">mazur@ibis.ua</a>
