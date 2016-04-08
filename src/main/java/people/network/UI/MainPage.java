@@ -14,7 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import people.network.UI.views.FindingForm;
 import people.network.UI.views.PeopleFoundView;
 import people.network.entity.SearchPerson;
-import people.network.service.rest.JsonService;
+import people.network.service.resources.SourceService;
+import people.network.service.rest.ExternalRestService;
 
 import javax.servlet.annotation.WebServlet;
 import java.util.Locale;
@@ -43,13 +44,15 @@ public class MainPage extends UI {
     private Navigator navigator;
 
     @Autowired
-    private JsonService service;
+    private SourceService source;
+    @Autowired
+    private ExternalRestService service;
 
     @Override
     protected void init(VaadinRequest request) {
         Locale locale = request.getLocale();
+        source.setLocale(locale);
         setLocale(locale);
-        System.out.println(locale);
         navigator = new Navigator(this, this);
         navigator.addView(ENTERING_FORM, new FindingForm(this));
         navigator.addView(PEOPLE_FOUND, new PeopleFoundView(this));

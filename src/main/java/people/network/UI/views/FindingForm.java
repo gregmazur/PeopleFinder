@@ -6,11 +6,13 @@ import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.spring.annotation.SpringView;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
+import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.vaadin.easyuploads.UploadField;
 import people.network.UI.MainPage;
 import people.network.entity.criteria.RespSrchCrtriaObj;
+import people.network.service.resources.SourceService;
 import people.network.service.rest.Utils;
 
 import java.io.ByteArrayInputStream;
@@ -29,7 +31,8 @@ public class FindingForm extends VerticalLayout implements Serializable, View {
     private static final long serialVersionUID = -6575751250735498511L;
 
     private MainPage mainPage;
-    ComboBox homeCountry = new ComboBox("Home country"), homeCity = new ComboBox("Home city"),
+    private SourceService source;
+    ComboBox homeCountry, homeCity = new ComboBox("Home city"),
             homeRegion = new ComboBox("Home region"),
 
     currentCountry = new ComboBox("Current country"), currentCity = new ComboBox("Current city"),
@@ -78,6 +81,8 @@ public class FindingForm extends VerticalLayout implements Serializable, View {
     }
 
     private void init() {
+        source = mainPage.getSource();
+        homeCountry = new ComboBox(source.getMessage("home.country"));
         addComponent(new Label());
         Label header = new Label("Please enter some data about the person you looking for.");
         addComponent(header);

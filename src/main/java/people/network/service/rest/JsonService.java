@@ -27,7 +27,7 @@ import java.util.List;
 @SpringComponent
 @Data
 @Service
-public class JsonService {
+public class JsonService implements ExternalRestService{
     private String accessToken;
     private RestTemplate restTemplate = new RestTemplate();
     @Value("${vk.app.id}")
@@ -39,13 +39,8 @@ public class JsonService {
         restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
     }
 
-    /**
-     * @param method
-     * @param params 5 obligatory parameters will be added
-     * @param count  amount of result entries you want to receive
-     * @param from   number of from which you need to get the list
-     * @return
-     */
+
+    @Override
     public List<RespSrchCrtriaObj> getCriteriaList(String method, MultiValueMap<String, String> params,
                                                    int count, int from) {
         if (null == params) return Collections.emptyList();
@@ -64,13 +59,7 @@ public class JsonService {
         return Arrays.asList(objects);
     }
 
-    /**
-     * @param method method name
-     * @param params a map with params for the request
-     * @param count number of results per one request
-     * @param from offset
-     * @return no more than 5000 results, will be called recursively inside
-     */
+    @Override
     public List<Person> getUserList(String method, MultiValueMap<String, String> params,
                                     int count, int from) {
         // if we have more than 5000 people found no need to load all of them
