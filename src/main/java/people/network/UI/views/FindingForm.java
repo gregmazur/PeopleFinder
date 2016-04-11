@@ -32,15 +32,10 @@ public class FindingForm extends VerticalLayout implements Serializable, View {
 
     private MainPage mainPage;
     private SourceService source;
-    ComboBox homeCountry, homeCity = new ComboBox("Home city"),
-            homeRegion = new ComboBox("Home region"),
-
-    currentCountry = new ComboBox("Current country"), currentCity = new ComboBox("Current city"),
-            currentRegion = new ComboBox("Current region"),
-
-    universityCountry = new ComboBox("University country"), universityCity = new ComboBox("University city"),
-            universityRegion = new ComboBox("University region");
-    private TextField name = new TextField("name");
+    ComboBox homeCountry, homeCity, homeRegion,
+            currentCountry, currentCity, currentRegion,
+            universityCountry, universityCity, universityRegion;
+    private TextField name;
     private UploadField uploadField;
 
     private enum InfoRole {
@@ -83,12 +78,29 @@ public class FindingForm extends VerticalLayout implements Serializable, View {
     private void init() {
         source = mainPage.getSource();
         homeCountry = new ComboBox(source.getMessage("home.country"));
+        homeRegion = new ComboBox(source.getMessage("home.region"));
+        homeCity = new ComboBox(source.getMessage("home.city"));
+        currentCountry = new ComboBox(source.getMessage("current.country"));
+        currentRegion = new ComboBox(source.getMessage("current.region"));
+        currentCity = new ComboBox(source.getMessage("current.city"));
+        universityCountry = new ComboBox(source.getMessage("university.country"));
+        universityRegion = new ComboBox(source.getMessage("university.region"));
+        universityCity = new ComboBox(source.getMessage("university.city"));
+
+        name = new TextField(source.getMessage("person.name"));
+
         addComponent(new Label());
-        Label header = new Label("Please enter some data about the person you looking for.");
-        addComponent(header);
-        header.setSizeUndefined();
-        setComponentAlignment(header, Alignment.MIDDLE_CENTER);
-        header.addStyleName(ValoTheme.LABEL_HUGE);
+        Label header1 = new Label(source.getMessage("header.message1"));
+        addComponent(header1);
+        header1.setSizeUndefined();
+        setComponentAlignment(header1, Alignment.MIDDLE_CENTER);
+        header1.addStyleName(ValoTheme.LABEL_HUGE);
+
+        Label header2 = new Label(source.getMessage("header.message2"));
+        addComponent(header2);
+        header2.setSizeUndefined();
+        setComponentAlignment(header2, Alignment.MIDDLE_CENTER);
+        header2.addStyleName(ValoTheme.LABEL_HUGE);
         addComponent(new Label());
 
 
@@ -98,7 +110,7 @@ public class FindingForm extends VerticalLayout implements Serializable, View {
         name.setWidth(50, Unit.PERCENTAGE);
         setComponentAlignment(name, Alignment.MIDDLE_CENTER);
 
-        String textMessage = "If there is no needed option input first letters of what you looking and try again";
+        String textMessage = source.getMessage("tip.message");
         Label message = new Label(textMessage);
         message.addStyleName(ValoTheme.LABEL_COLORED);
         addComponent(message);
@@ -149,7 +161,7 @@ public class FindingForm extends VerticalLayout implements Serializable, View {
         uploadField.setWidth(50, Unit.PERCENTAGE);
         setComponentAlignment(uploadField, Alignment.MIDDLE_CENTER);
 
-        Button submit = new Button("Submit", event -> {
+        Button submit = new Button(source.getMessage("find.button"), event -> {
             String name = this.name.getValue();
             if (null != name) putParam("q", name.trim());
             mainPage.getNavigator().navigateTo(MainPage.PEOPLE_FOUND);
@@ -166,7 +178,7 @@ public class FindingForm extends VerticalLayout implements Serializable, View {
     }
 
     private void openSignInWindow() {
-        Window subWindow = new Window("Welcome");
+        Window subWindow = new Window(source.getMessage("welcome.message"));
         subWindow.setModal(true);
         VerticalLayout subContent = new VerticalLayout();
         subContent.setMargin(true);
@@ -174,10 +186,10 @@ public class FindingForm extends VerticalLayout implements Serializable, View {
         subWindow.setWidth(30, Unit.PERCENTAGE);
         subWindow.setHeight(30, Unit.PERCENTAGE);
 
-        subContent.addComponent(new Label("Please login first"));
+        subContent.addComponent(new Label(source.getMessage("request.login")));
         String link = "https://oauth.vk.com/authorize?client_id=" + mainPage.getService().getVkAppId() +
                 "&display=page&redirect_uri=" + mainPage.getService().getHostName() + "&scope=friends&response_type=token&v=5.8";
-        subContent.addComponent(new Button("LOGIN", event -> {
+        subContent.addComponent(new Button(source.getMessage("login.btn.message"), event -> {
             mainPage.getPage().setLocation(link);
         }));
         // Center it in the browser window
@@ -190,7 +202,7 @@ public class FindingForm extends VerticalLayout implements Serializable, View {
     private VerticalLayout homeInfo(Collection<RespSrchCrtriaObj> countries) {
         InfoRole role = InfoRole.HOME;
         VerticalLayout layout = fillCityCountry(countries, role);
-        ComboBox school = new ComboBox("School");
+        ComboBox school = new ComboBox(source.getMessage("school"));
         school.setVisible(false);
         school.setImmediate(true);
         layout.addComponent(school);
@@ -233,7 +245,7 @@ public class FindingForm extends VerticalLayout implements Serializable, View {
     private VerticalLayout universityInfo(Collection<RespSrchCrtriaObj> countries) {
         InfoRole role = InfoRole.UNIVERSITY;
         VerticalLayout layout = fillCityCountry(countries, role);
-        ComboBox university = new ComboBox("University");
+        ComboBox university = new ComboBox(source.getMessage("university"));
         university.setVisible(false);
         university.setImmediate(true);
         layout.addComponent(university);
@@ -256,7 +268,7 @@ public class FindingForm extends VerticalLayout implements Serializable, View {
             RespSrchCrtriaObj oCountry = (RespSrchCrtriaObj) universityCountry.getValue();
             loadSchools(university, oCountry.getId(), oCity.getId(), newItemCaption, role);
         });
-        ComboBox faculty = new ComboBox("Faculty");
+        ComboBox faculty = new ComboBox(source.getMessage("faculty"));
         faculty.setVisible(false);
         faculty.setImmediate(true);
         university.addValueChangeListener(event -> {
@@ -280,9 +292,11 @@ public class FindingForm extends VerticalLayout implements Serializable, View {
     }
 
     private ComboBox getSex() {
-        ComboBox sex = new ComboBox("Sex");
-        sex.addItem(Sex.FEMALE);
-        sex.addItem(Sex.MALE);
+        ComboBox sex = new ComboBox(source.getMessage("sex"));
+        for (Sex sexValue: Sex.values()){
+            sex.addItem(sexValue);
+            sex.setItemCaption(sexValue,source.getMessage(sexValue.name()));
+        }
         sex.addValueChangeListener(event -> {
             Sex sex1 = (Sex) sex.getValue();
             if (null != sex1) putParam("sex", sex1.value);
@@ -291,14 +305,12 @@ public class FindingForm extends VerticalLayout implements Serializable, View {
     }
 
     private ComboBox getStatus() {
-        ComboBox status = new ComboBox("Status");
-        status.addItem(Status.SEARCHING);
-        status.addItem(Status.COMPLICATED);
-        status.addItem(Status.DATING);
-        status.addItem(Status.ENGAGED);
-        status.addItem(Status.MARRIED);
-        status.addItem(Status.NOTMARRIED);
-        status.addItem(Status.INLOVE);
+        ComboBox status = new ComboBox(source.getMessage("status"));
+        for (Status statusValue: Status.values()){
+            status.addItem(statusValue);
+            status.setItemCaption(statusValue,source.getMessage(statusValue.name()));
+        }
+
         status.addValueChangeListener(event -> {
             Status status1 = (Status) status.getValue();
             if (null != status1) putParam("status", status1.value);
@@ -307,7 +319,7 @@ public class FindingForm extends VerticalLayout implements Serializable, View {
     }
 
     private ComboBox getGroup() {
-        ComboBox group = new ComboBox("Group");
+        ComboBox group = new ComboBox(source.getMessage("group.msg"));
         group.setImmediate(true);
         group.setNewItemsAllowed(true);
         group.setNewItemHandler(caption -> {
@@ -394,7 +406,8 @@ public class FindingForm extends VerticalLayout implements Serializable, View {
 
     private HorizontalLayout getBirthDate() {
         HorizontalLayout layout = new HorizontalLayout();
-        ComboBox day = new ComboBox("Day"), month = new ComboBox("Month"), year = new ComboBox("Year");
+        ComboBox day = new ComboBox(source.getMessage("day")), month = new ComboBox(source.getMessage("month")),
+                year = new ComboBox(source.getMessage("year"));
         year.setImmediate(true);
         for (int i = LocalDate.now().getYear(); i > 1900; i--) {
             year.addItem(i);
@@ -433,8 +446,8 @@ public class FindingForm extends VerticalLayout implements Serializable, View {
 
     private HorizontalLayout getAgeLayout() { //TODO error
         HorizontalLayout ageLayout = new HorizontalLayout();
-        ComboBox ageFrom = new ComboBox("age from");
-        ComboBox ageTo = new ComboBox("age to");
+        ComboBox ageFrom = new ComboBox(source.getMessage("age.from"));
+        ComboBox ageTo = new ComboBox(source.getMessage("age.to"));
 
         for (int i = 1; i < 100; i++) {
             ageFrom.addItem(i);
@@ -442,22 +455,22 @@ public class FindingForm extends VerticalLayout implements Serializable, View {
         }
         ageFrom.addValueChangeListener(event -> {
             Integer from = (Integer) ageFrom.getValue();
-            Integer to = (Integer) ageTo.getValue();
-            if (null == from) return;
-            if (null != to && from > to) ageTo.removeAllItems();
-            for (int i = from; i < 100; i++) {
-                ageTo.addItem(i);
-            }
+//            Integer to = (Integer) ageTo.getValue();
+//            if (null == from) return;
+//            if (null != to && from > to) ageTo.removeAllItems();
+//            for (int i = from; i < 100; i++) {
+//                ageTo.addItem(i);
+//            }
             putParam("age_from", from);
         });
         ageTo.addValueChangeListener(event -> {
-            Integer from = (Integer) ageFrom.getValue();
+//            Integer from = (Integer) ageFrom.getValue();
             Integer to = (Integer) ageTo.getValue();
-            if (null == to) return;
-            if (null != from && from > to) ageFrom.removeAllItems();
-            for (int i = 1; i < to; i++) {
-                ageFrom.addItem(i);
-            }
+//            if (null == to) return;
+//            if (null != from && from > to) ageFrom.removeAllItems();
+//            for (int i = 1; i < to; i++) {
+//                ageFrom.addItem(i);
+//            }
             putParam("age_to", to);
         });
         ageLayout.addComponent(ageFrom);

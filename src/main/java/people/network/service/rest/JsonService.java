@@ -1,7 +1,6 @@
 package people.network.service.rest;
 
 
-import com.vaadin.spring.annotation.SpringComponent;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
@@ -12,10 +11,9 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import people.network.entity.criteria.RespSrchCrtriaObj;
 import people.network.entity.criteria.ResponseObjectCriteria;
-import people.network.entity.user.ResponseObjectUsers;
 import people.network.entity.user.Person;
+import people.network.entity.user.ResponseObjectUsers;
 
-import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -24,10 +22,9 @@ import java.util.List;
 /**
  * @author Mazur G <a href="mailto:mazur@ibis.ua">mazur@ibis.ua</a>
  */
-@SpringComponent
 @Data
 @Service
-public class JsonService implements ExternalRestService{
+public class JsonService implements ExternalRestService {
     private String accessToken;
     private RestTemplate restTemplate = new RestTemplate();
     @Value("${vk.app.id}")
@@ -64,7 +61,7 @@ public class JsonService implements ExternalRestService{
                                     int count, int from) {
         // if we have more than 5000 people found no need to load all of them
         if (null == params || from > 5000) return Collections.emptyList();
-        Utils.putParam(params, "fields", "photo_max_orig");
+        Utils.putParam(params, "fields", "photo_max_orig,occupation,universities");
         Utils.putParam(params, "has_photo", "1");
         String url = buildURL(method, params, count, from);
         System.out.println(url);
@@ -78,15 +75,15 @@ public class JsonService implements ExternalRestService{
             if (null == responseObject) return Collections.emptyList();
             Person[] objects = responseObject.getResponse().getItems();
             result.addAll(Arrays.asList(objects));
-            if (0 != objects.length) {
-                Thread.sleep(500);
-                result.addAll(getUserList(method, params, count, from + objects.length));
-            }
+//            if (0 != objects.length) {
+//                Thread.sleep(500);
+//                result.addAll(getUserList(method, params, count, from + objects.length));
+//            }
         } catch (ResourceAccessException e) {
             Utils.showError();
             return Collections.emptyList();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
         }
         return result;
     }

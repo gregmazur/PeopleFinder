@@ -25,15 +25,9 @@ public class Person implements Serializable {
     private String lastName;
     @JsonProperty(value = "photo_max_orig")
     private String picURL;
+    private Occupation occupation;
 
     private double similarity;
-
-    @Override
-    public String toString() {
-        return   "firstName='" + firstName + '\'' +
-                ", lastName='" + lastName + '\'' +
-                ", similarity='" + similarity;
-    }
 
     @Override
     public boolean equals(Object o) {

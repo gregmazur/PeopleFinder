@@ -21,6 +21,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
         <start-class>people.network.PeopleFinderApplication</start-class>
         <java.version>1.8</java.version>
         <vaadin.version>7.5.8</vaadin.version>
@@ -138,6 +139,7 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.0</version>
                 <configuration>
+                    <maxmem></maxmem>
                     <source>1.8</source>
                     <target>1.8</target>
                 </configuration>
@@ -146,6 +148,9 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <jvmArguments>-Xmx1024m</jvmArguments>
+                </configuration>
             </plugin>
         </plugins>
     </build>
