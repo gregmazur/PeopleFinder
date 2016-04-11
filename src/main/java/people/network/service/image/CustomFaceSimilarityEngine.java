@@ -74,7 +74,7 @@ public class CustomFaceSimilarityEngine<D extends DetectedFace, F extends Facial
                     }
                 });
 
-        int n_thds = (int) (1.5f * Runtime.getRuntime().availableProcessors());
+        int n_thds = Runtime.getRuntime().availableProcessors();
         executor = Executors.newFixedThreadPool(n_thds);
     }
 
@@ -126,6 +126,7 @@ public class CustomFaceSimilarityEngine<D extends DetectedFace, F extends Facial
             return Collections.emptyList();
         FaceDetector<D, FImage> detector = this.detector.get();
         List<D> facesList = detector.detectFaces(image);
+        if(facesList.isEmpty()) return Collections.emptyList();
         return facesList.stream().filter(this::isFaceConfident).collect(Collectors.toList());
     }
 

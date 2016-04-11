@@ -5,10 +5,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import org.openimaj.image.FImage;
 import org.openimaj.image.ImageUtilities;
-import people.network.service.utils.ProxyUtils;
+import people.network.service.utils.AppProperties;
 
 import java.io.*;
 import java.net.URL;
+import java.net.URLConnection;
 
 
 @Data
@@ -50,8 +51,8 @@ public class Person implements Serializable {
     public FImage getFImage() {
         try {
             URL url = new URL(picURL);
-            InputStream stream = url.openConnection(ProxyUtils.getProxy()).getInputStream();
-            return ImageUtilities.readF(stream);
+            URLConnection conn = AppProperties.isProxyInUse() ? url.openConnection(AppProperties.getProxy()) : url.openConnection();
+            return ImageUtilities.readF(conn.getInputStream());
         } catch(Exception e) {
             e.printStackTrace();
             return null;
