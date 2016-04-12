@@ -45,7 +45,7 @@ public class Person implements Serializable {
     public FImage getFImage() {
         try {
             URL url = new URL(picURL);
-            URLConnection conn = AppProperties.isProxyInUse() ? url.openConnection(AppProperties.getProxy()) : url.openConnection();
+            URLConnection conn = url.openConnection();
             return ImageUtilities.readF(conn.getInputStream());
         } catch(Exception e) {
             e.printStackTrace();
