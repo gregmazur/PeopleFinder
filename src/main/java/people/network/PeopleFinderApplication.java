@@ -16,9 +16,9 @@ public class PeopleFinderApplication {
 
 	public static void main(String[] args) throws IOException {
 		SpringApplication.run(PeopleFinderApplication.class, args);
-		if(AppProperties.isProxyInUse()) {
-			System.setProperty("https.proxyHost", AppProperties.getProxyHost());
-			System.setProperty("https.proxyPort", AppProperties.getProxyPort());
-		}
+//		if(AppProperties.isProxyInUse()) {
+//			System.setProperty("https.proxyHost", AppProperties.getProxyHost());
+//			System.setProperty("https.proxyPort", AppProperties.getProxyPort());
+//		}
 	}
 }
