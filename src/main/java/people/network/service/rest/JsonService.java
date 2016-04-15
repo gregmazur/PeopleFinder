@@ -1,6 +1,8 @@
 package people.network.service.rest;
 
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
@@ -14,6 +16,7 @@ import people.network.entity.criteria.ResponseObjectCriteria;
 import people.network.entity.user.Person;
 import people.network.entity.user.ResponseObjectUsers;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -26,6 +29,7 @@ import java.util.List;
 @Service
 public class JsonService implements ExternalRestService {
     private String accessToken;
+    private ObjectMapper mapper = new ObjectMapper();
     private RestTemplate restTemplate = new RestTemplate();
     @Value("${vk.app.id}")
     private String vkAppId;
@@ -41,7 +45,7 @@ public class JsonService implements ExternalRestService {
     public List<RespSrchCrtriaObj> getCriteriaList(String method, MultiValueMap<String, String> params,
                                                    int count, int from) {
         if (null == params) return Collections.emptyList();
-        String url = buildURL(method, params, count, from);
+        String url = buildURL(method, params, count, from, false);
         System.out.println(url);
 
         // marshaling the response from JSON to an object
@@ -63,13 +67,13 @@ public class JsonService implements ExternalRestService {
         if (null == params || from > 5000) return Collections.emptyList();
         Utils.putParam(params, "fields", "photo_max_orig,occupation,universities");
         Utils.putParam(params, "has_photo", "1");
-        String url = buildURL(method, params, count, from);
+        String url = buildURL(method, params, count, from, true);
         System.out.println(url);
 
         // marshaling the response from JSON to an object
         ResponseObjectUsers responseObject;
         List<Person> result = new ArrayList<>();
-        try {
+//        try {
             responseObject = restTemplate.getForObject(url, ResponseObjectUsers.class);
 
             if (null == responseObject) return Collections.emptyList();
@@ -79,19 +83,31 @@ public class JsonService implements ExternalRestService {
 //                Thread.sleep(500);
 //                result.addAll(getUserList(method, params, count, from + objects.length));
 //            }
-        } catch (ResourceAccessException e) {
-            Utils.showError();
-            return Collections.emptyList();
+
 //        } catch (InterruptedException e) {
 //            e.printStackTrace();
-        }
+
         return result;
     }
 
+    @Override
+    public List<Person> getUserList(String jsonText) throws IOException {
+        mapper.readValue(jsonText, ResponseObjectUsers.class);
+        return null;
+    }
+
+    @Override
+    public String buildURLforPersonSearchRequest(String method, MultiValueMap<String, String> params, int count, int from) {
+        Utils.putParam(params, "fields", "photo_max_orig,occupation,universities");
+        Utils.putParam(params, "has_photo", "1");
+        return buildURL(method, params, count, from, true);
+    }
+
+
     private String buildURL(String method, MultiValueMap<String, String> params,
-                            int count, int from) {
+                            int count, int from, boolean withAT) {
         Utils.putParam(params, "v", "5.8");
-        Utils.putParam(params, "access_token", accessToken);
+        if (withAT)Utils.putParam(params, "access_token", accessToken);
         Utils.putParam(params, "count", String.valueOf(count));
         if (0 < from) Utils.putParam(params, "offset", String.valueOf(from));
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.newInstance()

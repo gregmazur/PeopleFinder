@@ -150,10 +150,10 @@ public class FindingForm extends VerticalLayout implements Serializable, View {
         addComponent(message2);
         message2.setWidth(50, Unit.PERCENTAGE);
         setComponentAlignment(message2, Alignment.MIDDLE_CENTER);
-        ComboBox group = getGroup();
-        addComponents(group);
-        group.setWidth(50, Unit.PERCENTAGE);
-        setComponentAlignment(group, Alignment.MIDDLE_CENTER);
+//        ComboBox group = getGroup();
+//        addComponents(group);
+//        group.setWidth(50, Unit.PERCENTAGE);
+//        setComponentAlignment(group, Alignment.MIDDLE_CENTER);
 
         uploadField = getPictureUploadField();
         addComponent(uploadField);

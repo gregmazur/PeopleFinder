@@ -1,9 +1,11 @@
 package people.network.service.rest;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import org.springframework.util.MultiValueMap;
 import people.network.entity.criteria.RespSrchCrtriaObj;
 import people.network.entity.user.Person;
 
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -34,4 +36,9 @@ public interface ExternalRestService {
     String getVkAppId();
 
     String getHostName();
+
+    List<Person> getUserList(String jsonText) throws IOException;
+
+    String buildURLforPersonSearchRequest(String method, MultiValueMap<String, String> params,
+                                          int count, int from);
 }
