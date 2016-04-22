@@ -1,14 +1,22 @@
 package people.network.UI.client;
 
+import com.vaadin.annotations.JavaScript;
 import com.vaadin.ui.AbstractJavaScriptComponent;
+import lombok.Getter;
+import people.network.UI.views.PeopleFoundView;
 
 /**
  * created by Greg 15-04-2016
  **/
+@Getter
+@JavaScript({"RPC.js"})
 public class RPCaller extends AbstractJavaScriptComponent {
-    public RPCaller() {
+    private PeopleFoundView instance;
+    private String response;
+
+    public RPCaller(PeopleFoundView instance) {
         addFunction("returnResponse", arguments -> {
-            String response = arguments.getString(0);
+            response = arguments.getString(0);
             // do whatever
         });
     }

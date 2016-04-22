@@ -25,12 +25,12 @@ public class Utils {
 
 
 
-    public static void showError(){
-        new Notification("Error",
-                "<br/>Couldn`t connect to VK",
-                Notification.Type.WARNING_MESSAGE, true)
-                .show(Page.getCurrent());
-    }
+//    public static void showError(){
+//        new Notification("Error",
+//                "<br/>Couldn`t connect to VK",
+//                Notification.Type.WARNING_MESSAGE, true)
+//                .show(Page.getCurrent());
+//    }
 
     public static void putParam(MultiValueMap<String,String> map,String key, String value) {
         LinkedList<String> list = new LinkedList<>();

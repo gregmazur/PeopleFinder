@@ -8,15 +8,17 @@ import com.vaadin.spring.annotation.SpringView;
 import com.vaadin.ui.*;
 import org.springframework.util.MultiValueMap;
 import people.network.UI.MainPage;
+import people.network.UI.client.RPCaller;
 import people.network.entity.user.Occupation;
 import people.network.entity.user.Person;
 import people.network.service.ImageService;
 import people.network.service.ProcessingEvent;
 import people.network.service.ProcessingListener;
 import people.network.service.image.ImageProcessing;
-import people.network.service.resources.SourceService;
+import people.network.service.resourceProvider.SourceService;
 import people.network.service.rest.Utils;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,6 +35,7 @@ public class PeopleFoundView extends Panel implements View, ProcessingListener {
     private SourceService source;
     private List<Person> proceedPersons = new ArrayList<>();
     private int showedPersonsCount = 0;
+    RPCaller caller;
 
     public PeopleFoundView(MainPage mainPage) {
         this.mainPage = mainPage;
@@ -46,13 +49,22 @@ public class PeopleFoundView extends Panel implements View, ProcessingListener {
         showedPersonsCount = 0;
         listLayout.removeAllComponents();
         MultiValueMap<String, String> map = mainPage.getSearchPerson().getUserSearchParams();
-        List<Person> potentialPersons = mainPage.getService().getUserList(Utils.GET_USERS_METHOD, map, 1000, 0);
+        String url = mainPage.getService().buildURLforPersonSearchRequest(Utils.GET_USERS_METHOD, map, 1000, 0);
+        RPCaller caller = mainPage.getRpCaller();
+        caller.makeRequest(url);
+        List<Person> potentialPersons = new ArrayList<>();
+//        try {
+//            potentialPersons = mainPage.getService().getUserList(caller.getResponse());
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+
         if (!mainPage.getSearchPerson().getImages().isEmpty()) {
             imageService.addProcessingListener(this);
             imageService.findSimilarPeople(mainPage.getSearchPerson(), potentialPersons);
         } else {
             proceedPersons = potentialPersons;
-            for (showedPersonsCount = 0; showedPersonsCount < 20; ++showedPersonsCount) {
+            for (showedPersonsCount = 0; showedPersonsCount < 20 && showedPersonsCount < potentialPersons.size(); ++showedPersonsCount) {
                 addRow(showedPersonsCount);
             }
         }
@@ -108,7 +120,7 @@ public class PeopleFoundView extends Panel implements View, ProcessingListener {
 
         Link link = new Link(url, new ExternalResource(url));
         rightSide.addComponent(link);
-        Label name = new Label(person.getFirstName() + " "+ person.getLastName());
+        Label name = new Label(person.getFirstName() + " " + person.getLastName());
         rightSide.addComponent(name);
         Occupation occupationValue = person.getOccupation();
         if (null != occupationValue) {
@@ -148,6 +160,10 @@ public class PeopleFoundView extends Panel implements View, ProcessingListener {
     private void addLoadMoreBtn() {
         listLayout.addComponent(loadMoreButton);
         listLayout.setComponentAlignment(loadMoreButton, Alignment.MIDDLE_CENTER);
+    }
+
+    public RPCaller createRPCaller() {
+        return new RPCaller(this);
     }
 }
 

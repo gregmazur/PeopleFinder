@@ -49,12 +49,11 @@ public class JsonService implements ExternalRestService {
         System.out.println(url);
 
         // marshaling the response from JSON to an object
-        ResponseObjectCriteria responseObject;
+        ResponseObjectCriteria responseObject = null;
         try {
             responseObject = restTemplate.getForObject(url, ResponseObjectCriteria.class);
         } catch (ResourceAccessException e) {
-            Utils.showError();
-            return Collections.emptyList();
+            System.out.print(e);
         }
         RespSrchCrtriaObj[] objects = responseObject.getResponse().getItems();
         return Arrays.asList(objects);
@@ -92,7 +91,12 @@ public class JsonService implements ExternalRestService {
 
     @Override
     public List<Person> getUserList(String jsonText) throws IOException {
-        mapper.readValue(jsonText, ResponseObjectUsers.class);
+        ResponseObjectUsers responseObject;
+        List<Person> result = new ArrayList<>();
+        responseObject = mapper.readValue(jsonText, ResponseObjectUsers.class);
+        if (null == responseObject) return Collections.emptyList();
+        Person[] objects = responseObject.getResponse().getItems();
+        result.addAll(Arrays.asList(objects));
         return null;
     }
 

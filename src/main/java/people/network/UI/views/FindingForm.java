@@ -6,13 +6,12 @@ import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.spring.annotation.SpringView;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
-import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.vaadin.easyuploads.UploadField;
 import people.network.UI.MainPage;
 import people.network.entity.criteria.RespSrchCrtriaObj;
-import people.network.service.resources.SourceService;
+import people.network.service.resourceProvider.SourceService;
 import people.network.service.rest.Utils;
 
 import java.io.ByteArrayInputStream;

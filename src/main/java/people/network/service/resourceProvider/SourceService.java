@@ -1,4 +1,4 @@
-package people.network.service.resources;
+package people.network.service.resourceProvider;
 
 import java.util.Locale;
 /**

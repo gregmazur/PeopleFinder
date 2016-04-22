@@ -11,10 +11,11 @@ import com.vaadin.ui.UI;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.annotation.Autowired;
+import people.network.UI.client.RPCaller;
 import people.network.UI.views.FindingForm;
 import people.network.UI.views.PeopleFoundView;
 import people.network.entity.SearchPerson;
-import people.network.service.resources.SourceService;
+import people.network.service.resourceProvider.SourceService;
 import people.network.service.rest.ExternalRestService;
 
 import javax.servlet.annotation.WebServlet;
@@ -41,6 +42,7 @@ public class MainPage extends UI {
     public static final String PEOPLE_FOUND = "PeopleFound";
 
     private SearchPerson searchPerson = new SearchPerson();
+    private RPCaller rpCaller;
     private Navigator navigator;
 
     @Autowired
@@ -55,7 +57,9 @@ public class MainPage extends UI {
         setLocale(locale);
         navigator = new Navigator(this, this);
         navigator.addView(ENTERING_FORM, new FindingForm(this));
-        navigator.addView(PEOPLE_FOUND, new PeopleFoundView(this));
+        PeopleFoundView view = new PeopleFoundView(this);
+        rpCaller = view.createRPCaller();
+        navigator.addView(PEOPLE_FOUND, view);
     }
 
 }
